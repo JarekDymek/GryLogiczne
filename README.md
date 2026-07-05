@@ -17,6 +17,12 @@ npm install
 npm run dev
 ```
 
+## Publikacja
+
+GitHub Pages jest wdrażany automatycznie z `main` przez workflow
+`.github/workflows/deploy-pages.yml`. Build Vite używa ścieżki bazowej
+`/GryLogiczne/`, zgodnej z adresem projektu na GitHub Pages.
+
 ## Sprawdzenie
 
 ```bash

@@ -3,6 +3,8 @@
 The app is installable on phones and tablets through the browser's standard
 install flow.
 
+For GitHub Pages the production build uses the `/GryLogiczne/` base path.
+
 ## Implemented
 
 - Web app manifest: `public/manifest.webmanifest`
@@ -14,6 +16,7 @@ install flow.
 - Service worker registration
 - Offline shell caching for the built app
 - Safe-area-aware responsive layout
+- GitHub Pages deployment through GitHub Actions
 
 ## Service Worker Strategy
 
