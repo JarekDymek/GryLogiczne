@@ -3,7 +3,7 @@ import { hasAnyOverlap, polygonArea, transformedVertices } from "./geometry";
 import { tPuzzleLevels } from "./levels";
 import { createInitialPieceStates, pieceDefinitions, piecesById } from "./pieces";
 import { applyDeltaToStates, findSnap } from "./snap";
-import { isLevelSolved } from "./validation";
+import { isLevelSolved, silhouetteSimilarityForLevel } from "./validation";
 import type { PieceState, QuarterRotation } from "./types";
 
 function solutionStates(): PieceState[] {
@@ -73,12 +73,25 @@ describe("T-Puzzle geometry", () => {
     expect(hasAnyOverlap(states, piecesById)).toBe(true);
   });
 
-  it("keeps the corrected figure 1 total area at seven square units", () => {
+  it("keeps the corrected figure 1 total area at six square units", () => {
     const totalArea = pieceDefinitions.reduce(
       (sum, piece) => sum + polygonArea(piece.vertices),
       0,
     );
-    expect(totalArea).toBeCloseTo(7, 8);
+    expect(totalArea).toBeCloseTo(6, 8);
+  });
+
+  it("uses the classic T-puzzle piece family", () => {
+    const vertexCounts = Object.fromEntries(
+      pieceDefinitions.map((piece) => [piece.id, piece.vertices.length]),
+    );
+
+    expect(vertexCounts).toEqual({
+      "blue-bar": 4,
+      "green-wing": 5,
+      "pink-keystone": 4,
+      "yellow-cap": 3,
+    });
   });
 
   it("accepts figure 1 in any global board position", () => {
@@ -87,6 +100,14 @@ describe("T-Puzzle geometry", () => {
       position: { x: state.position.x + 3.4, y: state.position.y - 1.8 },
     }));
     expect(isLevelSolved(tPuzzleLevels[0], shifted)).toBe(true);
+  });
+
+  it("matches the extracted black target for figure 1", () => {
+    const similarity = silhouetteSimilarityForLevel(1, solutionStates());
+
+    expect(similarity).not.toBeNull();
+    expect(similarity!.intersectionOverUnion).toBeGreaterThan(0.72);
+    expect(isLevelSolved(tPuzzleLevels[0], solutionStates())).toBe(true);
   });
 
   it("rejects a visually plausible but wrong transform", () => {

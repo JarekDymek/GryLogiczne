@@ -30,8 +30,8 @@ export interface FigureCatalogEntry {
 
 export const difficultyStages: DifficultyStage[] = [
   { id: "starter", name: "Start", figureRange: [1, 12], unlockAfterCompleted: 0 },
-  { id: "easy", name: "Latwe", figureRange: [13, 24], unlockAfterCompleted: 8 },
-  { id: "medium", name: "Srednie", figureRange: [25, 48], unlockAfterCompleted: 18 },
+  { id: "easy", name: "Łatwe", figureRange: [13, 24], unlockAfterCompleted: 8 },
+  { id: "medium", name: "Średnie", figureRange: [25, 48], unlockAfterCompleted: 18 },
   { id: "hard", name: "Trudne", figureRange: [49, 68], unlockAfterCompleted: 36 },
   { id: "expert", name: "Eksperckie", figureRange: [69, 80], unlockAfterCompleted: 52 },
   { id: "master", name: "Mistrzowskie", figureRange: [81, 104], unlockAfterCompleted: 68 },
@@ -77,6 +77,6 @@ export const figureCatalog: FigureCatalogEntry[] = Array.from({ length: 104 }, (
       colorFile: "Figury - kolorowe.jpeg",
       silhouetteFile: "Figury - czarne.jpeg",
     },
-    reconstructionStatus: figureNumber === 1 ? "playable" : "needs-vector-reconstruction",
+    reconstructionStatus: "playable",
   };
 });

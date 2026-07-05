@@ -2,78 +2,74 @@
 
 ## Status
 
-This is the corrected playable vector prototype for figure 1. It is based on
-the color relationships visible in the numbered figure reference: pink and
-yellow form the short slanted ends of the top bar, green forms the central
-piece with the downward diagonal leg, and blue forms the stem with a slanted
-top edge.
+The playable model uses the classic T-puzzle family confirmed by public
+references and the supplied color screenshot:
 
-Before importing many levels, the four Gardner's T pieces should still be
-rechecked against `T-puzle.jpg` and updated with exact symbolic relations where
-needed.
+- one right isosceles triangle,
+- two right trapezoids,
+- one irregular pentagon.
+
+The target shown to the player is a black silhouette with no internal color
+lines. The working pieces are also neutral black.
 
 ## Base Unit
 
-The prototype uses logical world unit `a = 1`.
+The prototype uses logical world unit `a = 1`. The solved figure 1 silhouette
+is a T with top bar `0..3 x 0..1` and stem `1..2 x 1..4`.
 
 ## Piece Summary
 
 ### `blue-bar`
 
-- Working color: blue
-- Shape: vertical stem with a slanted top edge
+- Shape: right trapezoid forming the stem.
 - Vertices, clockwise:
-  - `(2.25, 1)`
-  - `(2.25, 4.25)`
-  - `(1.25, 4.25)`
-  - `(1.25, 2)`
-- Area: `2.75`
-- Flip axis: `(1.75, 1.6)` to `(1.75, 4.15)`
+  - `(2, 1)`
+  - `(2, 4)`
+  - `(1, 4)`
+  - `(1, 2)`
+- Area: `2.5`
 
 ### `green-wing`
 
-- Working color: green
-- Shape: central six-sided piece with a downward diagonal leg
+- Shape: irregular pentagon.
 - Vertices, clockwise:
-  - `(1.75, 0)`
-  - `(3.25, 0)`
-  - `(2.25, 1)`
-  - `(1.25, 2)`
-  - `(1.25, 1)`
-  - `(0.75, 1)`
-- Area: `2`
-- Flip axis: `(1.25, 1)` to `(3.25, 0)`
+  - `(sqrt(2), 0)`
+  - `(3, 0)`
+  - `(2, 1)`
+  - `(1, 2)`
+  - `(1, 1)`
+- Area: `(3.586...) / 2`
 
 ### `pink-keystone`
 
-- Working color: pink
-- Shape: left slanted cap of the top bar
+- Shape: left right trapezoid.
 - Vertices, clockwise:
   - `(0, 0)`
-  - `(1.75, 0)`
-  - `(0.75, 1)`
+  - `(sqrt(2), 0)`
+  - `(1, 1)`
   - `(0, 1)`
-- Area: `1.25`
-- Flip axis: `(0, 0.5)` to `(1.25, 0.5)`
+- Area: `(1 + sqrt(2)) / 2`
 
 ### `yellow-cap`
 
-- Working color: yellow
-- Shape: right slanted cap of the top bar
+- Shape: right isosceles right triangle.
 - Vertices, clockwise:
-  - `(3.25, 0)`
-  - `(3.75, 0)`
-  - `(3.75, 1)`
-  - `(2.25, 1)`
-- Area: `1`
-- Flip axis: `(2.8, 0.5)` to `(3.75, 0.5)`
+  - `(3, 0)`
+  - `(3, 1)`
+  - `(2, 1)`
+- Area: `0.5`
 
 ## Total Area
 
-The solved figure area is `7`. The prototype T silhouette is the union of the
-four color-coded piece polygons from figure 1.
+The solved figure area is `6`. The four polygons tile the T without overlap;
+edge contact is valid.
 
-## Edges And Centroids
+## Extracted Targets
 
-Runtime edges and centroids are calculated in `src/games/t-puzzle/geometry.ts`
-from the vertex lists, which avoids duplicate hand-maintained data.
+The 104 black target previews are generated from `Figury - kolorowe.jpeg`.
+The source colors are thresholded into one black silhouette and saved under
+`public/t-puzzle/targets/figure-001.png` through `figure-104.png`.
+
+Runtime validation compares the player's normalized black silhouette against
+the generated target mask. Figure 1 also keeps the exact transform solution as
+an additional regression check.

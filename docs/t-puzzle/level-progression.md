@@ -23,9 +23,12 @@ a different scale than the board.
 These thresholds are initial gameplay data and can be tuned after classroom
 testing.
 
-## Reconstruction Status
+## Playable Target Status
 
 The catalog exists for all 104 figures in `src/games/t-puzzle/catalog.ts`.
-Only figure 1 is currently playable as a vector level. Figures 2-104 are marked
-as `needs-vector-reconstruction` until they are rebuilt in the level editor and
-validated mathematically.
+Each figure has a generated black target image and a 64x64 normalized
+silhouette mask. The current validation compares the player's arranged
+silhouette with that target mask.
+
+Figure 1 additionally keeps an exact transform solution because it is the base
+T figure used to verify the four piece shapes.
