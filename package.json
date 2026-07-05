@@ -4,10 +4,10 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host 127.0.0.1",
-    "build": "tsc -b && vite build",
-    "test": "vitest run",
-    "preview": "vite preview --host 127.0.0.1"
+    "dev": "vite --config vite.config.mjs --host 127.0.0.1",
+    "build": "tsc -b && vite build --config vite.config.mjs",
+    "test": "vitest run --config vite.config.mjs",
+    "preview": "vite preview --config vite.config.mjs --host 127.0.0.1"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",
