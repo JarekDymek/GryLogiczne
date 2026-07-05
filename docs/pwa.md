@@ -4,6 +4,9 @@ The app is installable on phones and tablets through the browser's standard
 install flow.
 
 For GitHub Pages the production build uses the `/GryLogiczne/` base path.
+The repository also keeps a static fallback for the current `main/root` Pages
+setting: the root `index.html` redirects GitHub Pages visitors to `/dist/`,
+while Vite development on localhost still loads `src/main.tsx` directly.
 
 ## Implemented
 
