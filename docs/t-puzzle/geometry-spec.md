@@ -2,10 +2,15 @@
 
 ## Status
 
-This is the first playable vector prototype. It intentionally separates the
-implemented data model from the final mathematical audit. Before importing many
-levels, the four Gardner's T pieces should be rechecked against `T-puzle.jpg`
-and updated with exact symbolic relations where needed.
+This is the corrected playable vector prototype for figure 1. It is based on
+the color relationships visible in the numbered figure reference: pink and
+yellow form the short slanted ends of the top bar, green forms the central
+piece with the downward diagonal leg, and blue forms the stem with a slanted
+top edge.
+
+Before importing many levels, the four Gardner's T pieces should still be
+rechecked against `T-puzle.jpg` and updated with exact symbolic relations where
+needed.
 
 ## Base Unit
 
@@ -16,55 +21,57 @@ The prototype uses logical world unit `a = 1`.
 ### `blue-bar`
 
 - Working color: blue
-- Shape: vertical rectangle
+- Shape: vertical stem with a slanted top edge
 - Vertices, clockwise:
-  - `(1.5, 1)`
-  - `(2.5, 1)`
-  - `(2.5, 4)`
-  - `(1.5, 4)`
-- Area: `3`
-- Flip axis: `(2, 1)` to `(2, 4)`
+  - `(2.25, 1)`
+  - `(2.25, 4.25)`
+  - `(1.25, 4.25)`
+  - `(1.25, 2)`
+- Area: `2.75`
+- Flip axis: `(1.75, 1.6)` to `(1.75, 4.15)`
 
 ### `green-wing`
 
 - Working color: green
-- Shape: top-left trapezoid
+- Shape: central six-sided piece with a downward diagonal leg
 - Vertices, clockwise:
-  - `(0, 0)`
-  - `(2.2, 0)`
-  - `(1.5, 1)`
-  - `(0, 1)`
-- Area: `1.85`
-- Flip axis: `(0.2, 0.5)` to `(1.9, 0.5)`
+  - `(1.75, 0)`
+  - `(3.25, 0)`
+  - `(2.25, 1)`
+  - `(1.25, 2)`
+  - `(1.25, 1)`
+  - `(0.75, 1)`
+- Area: `2`
+- Flip axis: `(1.25, 1)` to `(3.25, 0)`
 
 ### `pink-keystone`
 
 - Working color: pink
-- Shape: middle trapezoid
+- Shape: left slanted cap of the top bar
 - Vertices, clockwise:
-  - `(2.2, 0)`
-  - `(3.15, 0)`
-  - `(2.5, 1)`
-  - `(1.5, 1)`
-- Area: `0.975`
-- Flip axis: `(2.3, 0.12)` to `(2.35, 0.95)`
+  - `(0, 0)`
+  - `(1.75, 0)`
+  - `(0.75, 1)`
+  - `(0, 1)`
+- Area: `1.25`
+- Flip axis: `(0, 0.5)` to `(1.25, 0.5)`
 
 ### `yellow-cap`
 
 - Working color: yellow
-- Shape: right trapezoid
+- Shape: right slanted cap of the top bar
 - Vertices, clockwise:
-  - `(3.15, 0)`
-  - `(4, 0)`
-  - `(4, 1)`
-  - `(2.5, 1)`
-- Area: `1.175`
-- Flip axis: `(3.35, 0.5)` to `(4, 0.5)`
+  - `(3.25, 0)`
+  - `(3.75, 0)`
+  - `(3.75, 1)`
+  - `(2.25, 1)`
+- Area: `1`
+- Flip axis: `(2.8, 0.5)` to `(3.75, 0.5)`
 
 ## Total Area
 
 The solved figure area is `7`. The prototype T silhouette is the union of the
-top bar and the vertical stem.
+four color-coded piece polygons from figure 1.
 
 ## Edges And Centroids
 

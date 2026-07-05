@@ -68,9 +68,17 @@ describe("T-Puzzle geometry", () => {
 
   it("detects real overlap", () => {
     const states = solutionStates().map((state) =>
-      state.pieceId === "green-wing" ? { ...state, position: { x: 1.7, y: 1.2 } } : state,
+      state.pieceId === "green-wing" ? { ...state, position: { x: 0, y: 1 } } : state,
     );
     expect(hasAnyOverlap(states, piecesById)).toBe(true);
+  });
+
+  it("keeps the corrected figure 1 total area at seven square units", () => {
+    const totalArea = pieceDefinitions.reduce(
+      (sum, piece) => sum + polygonArea(piece.vertices),
+      0,
+    );
+    expect(totalArea).toBeCloseTo(7, 8);
   });
 
   it("accepts figure 1 in any global board position", () => {

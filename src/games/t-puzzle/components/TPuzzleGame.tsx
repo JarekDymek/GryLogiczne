@@ -227,7 +227,7 @@ export function TPuzzleGame() {
 
         <div className="panel-section preview-section">
           <p className="section-label">Podgląd</p>
-          <svg viewBox="-0.2 -0.2 4.4 4.5" className="preview-svg" aria-label="Podgląd figury T">
+          <svg viewBox="-0.2 -0.2 4.15 4.65" className="preview-svg" aria-label="Podgląd figury T">
             {pieceDefinitions.map((piece) => (
               <polygon
                 key={piece.id}
