@@ -13,15 +13,16 @@
     <link rel="icon" href="%BASE_URL%icons/icon-192.png" sizes="192x192" />
     <link rel="apple-touch-icon" href="%BASE_URL%icons/icon-192.png" />
     <title>Gry logiczne</title>
-    <script>
-      if (location.hostname.endsWith("github.io") && !location.pathname.includes("/dist/")) {
-        const basePath = location.pathname.endsWith("/") ? location.pathname : `${location.pathname}/`;
-        location.replace(`${basePath}dist/`);
-      }
-    </script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      const sourceEntry = document.querySelector('script[src="/src/main.tsx"]');
+      if (sourceEntry && location.hostname.endsWith("github.io") && !location.pathname.includes("/dist/")) {
+        const basePath = location.pathname.endsWith("/") ? location.pathname : `${location.pathname}/`;
+        location.replace(`${basePath}dist/`);
+      }
+    </script>
   </body>
 </html>

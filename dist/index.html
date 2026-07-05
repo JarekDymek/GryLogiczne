@@ -13,16 +13,17 @@
     <link rel="icon" href="/GryLogiczne/icons/icon-192.png" sizes="192x192" />
     <link rel="apple-touch-icon" href="/GryLogiczne/icons/icon-192.png" />
     <title>Gry logiczne</title>
-    <script>
-      if (location.hostname.endsWith("github.io") && !location.pathname.includes("/dist/")) {
-        const basePath = location.pathname.endsWith("/") ? location.pathname : `${location.pathname}/`;
-        location.replace(`${basePath}dist/`);
-      }
-    </script>
     <script type="module" crossorigin src="/GryLogiczne/assets/index-BvZksaWs.js"></script>
     <link rel="stylesheet" crossorigin href="/GryLogiczne/assets/index-CwaAXurS.css">
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      const sourceEntry = document.querySelector('script[src="/src/main.tsx"]');
+      if (sourceEntry && location.hostname.endsWith("github.io") && !location.pathname.includes("/dist/")) {
+        const basePath = location.pathname.endsWith("/") ? location.pathname : `${location.pathname}/`;
+        location.replace(`${basePath}dist/`);
+      }
+    </script>
   </body>
 </html>
