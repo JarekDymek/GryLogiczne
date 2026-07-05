@@ -30,6 +30,7 @@
 
 ## Stage 5: Level Import Batches
 
+- Keep the player-facing target as a black silhouette with no internal lines.
 - Import and verify levels 2-5.
 - Then import 6-24.
 - Then import ranges confirmed by the new full screenshots: 25-48, 49-68,

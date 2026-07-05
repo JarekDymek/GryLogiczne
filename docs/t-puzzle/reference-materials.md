@@ -30,7 +30,7 @@ data.
 
 - `T-puzle-figury.jpg` - named gallery with visible four-piece layouts.
 
-## Missing Or Previously Unconfirmed Ranges
+## Newly Confirmed Ranges
 
 The original material set did not directly confirm numbered color solutions for:
 
@@ -38,6 +38,6 @@ The original material set did not directly confirm numbered color solutions for:
 - 69-80
 - 101-104
 
-The new screenshots appear to include these ranges, but they should still be
-reconstructed through the level editor and verified mathematically before being
-accepted as playable levels.
+The new full screenshots include these ranges. They are now part of the figure
+catalog, but they should still be reconstructed through the level editor and
+verified mathematically before being accepted as playable levels.

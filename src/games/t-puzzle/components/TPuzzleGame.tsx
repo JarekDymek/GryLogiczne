@@ -9,13 +9,6 @@ import { applyDeltaToStates, findSnap } from "../snap";
 import { isLevelSolved } from "../validation";
 import type { PieceState, Point, QuarterRotation } from "../types";
 
-const pieceClass = {
-  blue: "piece-blue",
-  green: "piece-green",
-  pink: "piece-pink",
-  yellow: "piece-yellow",
-};
-
 function rotateValue(rotation: QuarterRotation, delta: 90 | -90): QuarterRotation {
   return (((rotation + delta + 360) % 360) as QuarterRotation);
 }
@@ -232,8 +225,7 @@ export function TPuzzleGame() {
               <polygon
                 key={piece.id}
                 points={pathFromPoints(piece.vertices)}
-                className={`piece ${pieceClass[piece.workColor]}`}
-                vectorEffect="non-scaling-stroke"
+                className="target-silhouette"
               />
             ))}
           </svg>
@@ -287,7 +279,7 @@ export function TPuzzleGame() {
               <g key={state.pieceId}>
                 <polygon
                   points={pathFromPoints(vertices)}
-                  className={`piece board-piece ${pieceClass[piece.workColor]} ${selected ? "selected" : ""}`}
+                  className={`piece board-piece piece-neutral ${selected ? "selected" : ""}`}
                   onPointerDown={(event) => onPointerDown(event, state.pieceId)}
                   onDoubleClick={flipSelected}
                   vectorEffect="non-scaling-stroke"

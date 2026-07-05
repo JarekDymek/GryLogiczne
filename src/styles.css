@@ -130,6 +130,11 @@ button:hover {
   background: #fbfcfe;
 }
 
+.target-silhouette {
+  fill: #050505;
+  stroke: none;
+}
+
 .controls {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -172,20 +177,9 @@ button:hover {
   filter: drop-shadow(0 0.1rem 0.14rem rgba(0, 0, 0, 0.25));
 }
 
-.piece-blue {
-  fill: #9cc9e8;
-}
-
-.piece-green {
-  fill: #21d844;
-}
-
-.piece-pink {
-  fill: #ef95dd;
-}
-
-.piece-yellow {
-  fill: #f2ea55;
+.piece-neutral {
+  fill: #050505;
+  stroke: #202938;
 }
 
 .centroid {
