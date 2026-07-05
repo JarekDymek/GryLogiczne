@@ -7,6 +7,8 @@ Lokalna aplikacja z modułami gier logicznych do pracy z młodzieżą.
 - `T-Puzzle` - pierwszy grywalny prototyp z czterema wektorowymi klockami,
   przeciąganiem, obrotem, odwracaniem, snapem, grupowaniem i walidacją figury
   nr 1.
+- PWA - aplikacja ma manifest, service worker, ikony instalacyjne i responsywny
+  układ dla telefonów oraz tabletów.
 
 ## Uruchomienie
 
