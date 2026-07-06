@@ -66,8 +66,8 @@ edge contact is valid.
 
 ## Extracted Targets
 
-The 104 black target previews are generated from `Figury - kolorowe.jpeg`.
-The source colors are thresholded into one black silhouette and saved under
+The 104 black target previews are generated from `Figury - czarne.jpeg`.
+The largest black component from each reference cell is saved under
 `public/t-puzzle/targets/figure-001.png` through `figure-104.png`.
 
 Runtime validation compares the player's normalized black silhouette against
