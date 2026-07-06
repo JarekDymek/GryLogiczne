@@ -141,7 +141,10 @@ export function TPuzzleGame() {
   const target = level.targets[targetIndex];
   const currentTargetKey = targetKey(level.id, target.id);
   const targetPolygons = useMemo(() => solutionPolygons(target), [target]);
-  const previewBounds = useMemo(() => boundsForPolygons(targetPolygons), [targetPolygons]);
+  const previewBounds = useMemo(
+    () => (target.outline ? boundsForPolygons([target.outline]) : boundsForPolygons(targetPolygons)),
+    [target.outline, targetPolygons],
+  );
   const sortedStates = useMemo(
     () => [...states].sort((a, b) => a.zIndex - b.zIndex),
     [states],
@@ -526,13 +529,20 @@ export function TPuzzleGame() {
               className="preview-svg"
               aria-label="Jednolity podglad figury docelowej"
             >
-              {targetPolygons.map((points, index) => (
+              {target.outline ? (
                 <polygon
-                  key={`${target.id}-${index}`}
-                  points={pathFromPoints(points)}
+                  points={pathFromPoints(target.outline)}
                   className="target-silhouette"
                 />
-              ))}
+              ) : (
+                targetPolygons.map((points, index) => (
+                  <polygon
+                    key={`${target.id}-${index}`}
+                    points={pathFromPoints(points)}
+                    className="target-silhouette"
+                  />
+                ))
+              )}
             </svg>
           )}
         </div>

@@ -89,8 +89,8 @@ describe("T-Puzzle geometry", () => {
     expect(vertexCounts).toEqual({
       "blue-bar": 4,
       "green-wing": 5,
-      "pink-keystone": 4,
-      "yellow-cap": 3,
+      "pink-keystone": 3,
+      "yellow-cap": 4,
     });
   });
 
@@ -116,17 +116,54 @@ describe("T-Puzzle geometry", () => {
     expect(hasAnyOverlap(solutionStates(), piecesById)).toBe(false);
   });
 
-  it("keeps the lower stem trapezoid side lengths from the reference diagram", () => {
+  it("keeps the approved tile side lengths from the reference diagram", () => {
+    const leftTriangle = piecesById["pink-keystone"].vertices;
+    const centralPentagon = piecesById["green-wing"].vertices;
+    const rightTrapezoid = piecesById["yellow-cap"].vertices;
     const stem = piecesById["blue-bar"].vertices;
-    const edgeLengths = stem.map((point, index) => {
-      const next = stem[(index + 1) % stem.length];
-      return Math.hypot(next.x - point.x, next.y - point.y);
-    });
 
-    expect(edgeLengths[0]).toBeCloseTo(5 - 2 * Math.SQRT2, 8);
-    expect(edgeLengths[1]).toBeCloseTo(1, 8);
-    expect(edgeLengths[2]).toBeCloseTo(4 - 2 * Math.SQRT2, 8);
-    expect(edgeLengths[3]).toBeCloseTo(Math.SQRT2, 8);
+    function edgeLengths(vertices: typeof stem): number[] {
+      return vertices.map((point, index) => {
+        const next = vertices[(index + 1) % vertices.length];
+        return Math.hypot(next.x - point.x, next.y - point.y);
+      });
+    }
+
+    const leftEdges = edgeLengths(leftTriangle);
+    expect(leftEdges[0]).toBeCloseTo(Math.SQRT2, 8);
+    expect(leftEdges[1]).toBeCloseTo(1, 8);
+    expect(leftEdges[2]).toBeCloseTo(1, 8);
+
+    const centralEdges = edgeLengths(centralPentagon);
+    expect(centralEdges[0]).toBeCloseTo(Math.SQRT2, 8);
+    expect(centralEdges[1]).toBeCloseTo(Math.SQRT2, 8);
+    expect(centralEdges[2]).toBeCloseTo(Math.SQRT2 - 1, 8);
+    expect(centralEdges[3]).toBeCloseTo(1, 8);
+    expect(centralEdges[4]).toBeCloseTo(2 * Math.SQRT2, 8);
+
+    const rightEdges = edgeLengths(rightTrapezoid);
+    expect(rightEdges[0]).toBeCloseTo(3 - Math.SQRT2, 8);
+    expect(rightEdges[1]).toBeCloseTo(1, 8);
+    expect(rightEdges[2]).toBeCloseTo(2 - Math.SQRT2, 8);
+    expect(rightEdges[3]).toBeCloseTo(Math.SQRT2, 8);
+
+    const stemEdges = edgeLengths(stem);
+    expect(stemEdges[0]).toBeCloseTo(Math.SQRT2, 8);
+    expect(stemEdges[1]).toBeCloseTo(4 - 2 * Math.SQRT2, 8);
+    expect(stemEdges[2]).toBeCloseTo(1, 8);
+    expect(stemEdges[3]).toBeCloseTo(5 - 2 * Math.SQRT2, 8);
+  });
+
+  it("keeps the exact solid T outline for preview", () => {
+    const outline = tPuzzleLevels[0].targets[0].outline ?? [];
+    const xs = outline.map((point) => point.x);
+    const ys = outline.map((point) => point.y);
+
+    expect(outline).toHaveLength(8);
+    expect(Math.min(...xs)).toBeCloseTo(0, 8);
+    expect(Math.max(...xs)).toBeCloseTo(3, 8);
+    expect(Math.min(...ys)).toBeCloseTo(0, 8);
+    expect(Math.max(...ys)).toBeCloseTo(T_PUZZLE_HEIGHT, 8);
   });
 
   it("puts three figures in every level", () => {

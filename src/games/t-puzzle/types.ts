@@ -54,6 +54,7 @@ export interface TargetDefinition {
   };
   previewScale: number;
   maskFigureNumber?: number;
+  outline?: Point[];
   solutions: PieceTransform[][];
 }
 

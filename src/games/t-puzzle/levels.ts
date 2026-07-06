@@ -1,6 +1,6 @@
 import { geometryTolerance } from "./config";
-import { pieceDefinitions } from "./pieces";
-import type { LevelDefinition, PieceTransform, QuarterRotation, TargetDefinition } from "./types";
+import { pieceDefinitions, T_PUZZLE_HEIGHT } from "./pieces";
+import type { LevelDefinition, PieceTransform, Point, QuarterRotation, TargetDefinition } from "./types";
 
 function round(value: number): number {
   return Math.round(value * 1000) / 1000;
@@ -20,6 +20,28 @@ function rotatePoint(x: number, y: number, degrees: QuarterRotation) {
   }
 
   return { x, y };
+}
+
+const BASE_T_OUTLINE: Point[] = [
+  { x: 0, y: 0 },
+  { x: 3, y: 0 },
+  { x: 3, y: 1 },
+  { x: 2, y: 1 },
+  { x: 2, y: T_PUZZLE_HEIGHT },
+  { x: 1, y: T_PUZZLE_HEIGHT },
+  { x: 1, y: 1 },
+  { x: 0, y: 1 },
+];
+
+function outlineForRotation(rotation: QuarterRotation): Point[] {
+  const rotated = BASE_T_OUTLINE.map((point) => rotatePoint(point.x, point.y, rotation));
+  const minX = Math.min(...rotated.map((point) => point.x));
+  const minY = Math.min(...rotated.map((point) => point.y));
+
+  return rotated.map((point) => ({
+    x: point.x - minX,
+    y: point.y - minY,
+  }));
 }
 
 function tSolution(rotation: QuarterRotation): PieceTransform[] {
@@ -49,6 +71,7 @@ function exactTarget(
       figure: displayNumber,
     },
     previewScale: 0.35,
+    outline: outlineForRotation(rotation),
     solutions: [tSolution(rotation)],
   };
 }
