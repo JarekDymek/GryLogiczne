@@ -1,4 +1,4 @@
-import type { LevelDefinition, PieceState, PieceTransform } from "./types";
+import type { LevelDefinition, PieceState, PieceTransform, TargetDefinition } from "./types";
 import { hasAnyOverlap, transformedVertices } from "./geometry";
 import { piecesById } from "./pieces";
 import { targetMasks } from "./targetMasks";
@@ -196,7 +196,11 @@ function matchesTargetSilhouette(figureNumber: number, states: PieceState[]): bo
   );
 }
 
-export function isLevelSolved(level: LevelDefinition, states: PieceState[]): boolean {
+export function isTargetSolved(
+  target: TargetDefinition,
+  validation: LevelDefinition["validation"],
+  states: PieceState[],
+): boolean {
   if (states.length !== 4) {
     return false;
   }
@@ -206,13 +210,13 @@ export function isLevelSolved(level: LevelDefinition, states: PieceState[]): boo
   }
 
   const actual = normalizedTransforms(states);
-  const exactSolution = level.solutions.some((solution) =>
-    matchesSolution(actual, normalizeSolution(solution), level.validation.positionTolerance),
+  const exactSolution = target.solutions.some((solution) =>
+    matchesSolution(actual, normalizeSolution(solution), validation.positionTolerance),
   );
 
-  if (level.solutions.length > 0) {
+  if (target.solutions.length > 0) {
     return exactSolution;
   }
 
-  return matchesTargetSilhouette(level.displayNumber, states);
+  return matchesTargetSilhouette(target.maskFigureNumber ?? target.displayNumber, states);
 }

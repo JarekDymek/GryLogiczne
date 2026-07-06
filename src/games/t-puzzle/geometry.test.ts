@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { hasAnyOverlap, polygonArea, transformedVertices } from "./geometry";
 import { tPuzzleLevels } from "./levels";
-import { createInitialPieceStates, pieceDefinitions, piecesById } from "./pieces";
+import { createInitialPieceStates, pieceDefinitions, piecesById, T_PUZZLE_HEIGHT } from "./pieces";
 import { applyDeltaToStates, findSnap } from "./snap";
-import { isLevelSolved } from "./validation";
+import { isTargetSolved } from "./validation";
 import type { PieceState, QuarterRotation } from "./types";
 
 function solutionStates(): PieceState[] {
@@ -73,12 +73,12 @@ describe("T-Puzzle geometry", () => {
     expect(hasAnyOverlap(states, piecesById)).toBe(true);
   });
 
-  it("keeps the centered figure 1 T area stable", () => {
+  it("keeps the mathematical T area stable", () => {
     const totalArea = pieceDefinitions.reduce(
       (sum, piece) => sum + polygonArea(piece.vertices),
       0,
     );
-    expect(totalArea).toBeCloseTo(6, 8);
+    expect(totalArea).toBeCloseTo(8 - 2 * Math.SQRT2, 8);
   });
 
   it("uses the four-piece T-puzzle family from the reference image", () => {
@@ -99,10 +99,10 @@ describe("T-Puzzle geometry", () => {
       ...state,
       position: { x: state.position.x + 3.4, y: state.position.y - 1.8 },
     }));
-    expect(isLevelSolved(tPuzzleLevels[0], shifted)).toBe(true);
+    expect(isTargetSolved(tPuzzleLevels[0].targets[0], tPuzzleLevels[0].validation, shifted)).toBe(true);
   });
 
-  it("forms the exact unit-constructed T outline", () => {
+  it("forms the exact sqrt2-constructed T outline", () => {
     const vertices = solutionStates().flatMap((state) =>
       transformedVertices(piecesById[state.pieceId], state),
     );
@@ -112,19 +112,38 @@ describe("T-Puzzle geometry", () => {
     expect(Math.min(...xs)).toBeCloseTo(0, 8);
     expect(Math.max(...xs)).toBeCloseTo(3, 8);
     expect(Math.min(...ys)).toBeCloseTo(0, 8);
-    expect(Math.max(...ys)).toBeCloseTo(4, 8);
+    expect(Math.max(...ys)).toBeCloseTo(T_PUZZLE_HEIGHT, 8);
     expect(hasAnyOverlap(solutionStates(), piecesById)).toBe(false);
   });
 
+  it("keeps the lower stem trapezoid side lengths from the reference diagram", () => {
+    const stem = piecesById["blue-bar"].vertices;
+    const edgeLengths = stem.map((point, index) => {
+      const next = stem[(index + 1) % stem.length];
+      return Math.hypot(next.x - point.x, next.y - point.y);
+    });
+
+    expect(edgeLengths[0]).toBeCloseTo(5 - 2 * Math.SQRT2, 8);
+    expect(edgeLengths[1]).toBeCloseTo(1, 8);
+    expect(edgeLengths[2]).toBeCloseTo(4 - 2 * Math.SQRT2, 8);
+    expect(edgeLengths[3]).toBeCloseTo(Math.SQRT2, 8);
+  });
+
+  it("puts three figures in every level", () => {
+    for (const level of tPuzzleLevels) {
+      expect(level.targets).toHaveLength(3);
+    }
+  });
+
   it("accepts the exact vector solution for figure 1", () => {
-    expect(isLevelSolved(tPuzzleLevels[0], solutionStates())).toBe(true);
+    expect(isTargetSolved(tPuzzleLevels[0].targets[0], tPuzzleLevels[0].validation, solutionStates())).toBe(true);
   });
 
   it("rejects a visually plausible but wrong transform", () => {
     const wrong = solutionStates().map((state) =>
       state.pieceId === "yellow-cap" ? { ...state, rotation: 90 as QuarterRotation } : state,
     );
-    expect(isLevelSolved(tPuzzleLevels[0], wrong)).toBe(false);
+    expect(isTargetSolved(tPuzzleLevels[0].targets[0], tPuzzleLevels[0].validation, wrong)).toBe(false);
   });
 
   it("finds a nearby vertex snap", () => {

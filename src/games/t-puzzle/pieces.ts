@@ -1,6 +1,9 @@
 import { polygonCentroid, polygonEdges } from "./geometry";
 import type { PieceDefinition, PieceState } from "./types";
 
+const SQRT2 = Math.SQRT2;
+export const T_PUZZLE_HEIGHT = 6 - 2 * SQRT2;
+
 function definePiece(
   piece: Omit<PieceDefinition, "centroid" | "edges">,
 ): PieceDefinition {
@@ -15,22 +18,22 @@ function definePiece(
 export const pieceDefinitions = [
   definePiece({
     id: "blue-bar",
-    name: "Prawy trapez trzonu",
+    name: "Dolny trapez trzonu",
     workColor: "blue",
     vertices: [
       { x: 2, y: 1 },
-      { x: 2, y: 4 },
-      { x: 1, y: 4 },
+      { x: 2, y: T_PUZZLE_HEIGHT },
+      { x: 1, y: T_PUZZLE_HEIGHT },
       { x: 1, y: 2 },
     ],
-    flipAxis: { start: { x: 1.5, y: 1.5 }, end: { x: 1.5, y: 4 } },
+    flipAxis: { start: { x: 1.5, y: 1.5 }, end: { x: 1.5, y: T_PUZZLE_HEIGHT } },
   }),
   definePiece({
     id: "green-wing",
-    name: "Piecokat srodkowy",
+    name: "Pieciokat srodkowy",
     workColor: "green",
     vertices: [
-      { x: Math.SQRT2, y: 0 },
+      { x: SQRT2, y: 0 },
       { x: 3, y: 0 },
       { x: 2, y: 1 },
       { x: 1, y: 2 },
@@ -44,7 +47,7 @@ export const pieceDefinitions = [
     workColor: "red",
     vertices: [
       { x: 0, y: 0 },
-      { x: Math.SQRT2, y: 0 },
+      { x: SQRT2, y: 0 },
       { x: 1, y: 1 },
       { x: 0, y: 1 },
     ],
@@ -80,21 +83,21 @@ export function createInitialPieceStates(): PieceState[] {
     },
     {
       pieceId: "green-wing",
-      position: { x: 2.8, y: 2.25 },
+      position: { x: 2.65, y: 2.15 },
       rotation: 180,
       flipped: false,
       zIndex: 2,
       groupId: "group-green",
-      lastValidPosition: { x: 2.8, y: 2.25 },
+      lastValidPosition: { x: 2.65, y: 2.15 },
     },
     {
       pieceId: "pink-keystone",
-      position: { x: -2.2, y: 3.2 },
+      position: { x: -2.2, y: 2.9 },
       rotation: 90,
       flipped: false,
       zIndex: 3,
       groupId: "group-red",
-      lastValidPosition: { x: -2.2, y: 3.2 },
+      lastValidPosition: { x: -2.2, y: 2.9 },
     },
     {
       pieceId: "yellow-cap",

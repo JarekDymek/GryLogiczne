@@ -44,17 +44,25 @@ export interface PieceTransform {
   flipped: boolean;
 }
 
-export interface LevelDefinition {
+export interface TargetDefinition {
   id: string;
   displayNumber: number;
   name: string;
-  difficulty: "easy" | "medium" | "hard" | "master";
   sourceReference: {
     file: string;
     figure: number;
   };
   previewScale: number;
+  maskFigureNumber?: number;
   solutions: PieceTransform[][];
+}
+
+export interface LevelDefinition {
+  id: string;
+  displayNumber: number;
+  name: string;
+  difficulty: "easy" | "medium" | "hard" | "master";
+  targets: TargetDefinition[];
   validation: {
     allowGlobalRotation: boolean;
     allowGlobalMirror: boolean;

@@ -14,8 +14,8 @@ import { hasAnyOverlap, pathFromPoints, transformedVertices } from "../geometry"
 import { tPuzzleLevels } from "../levels";
 import { createInitialPieceStates, piecesById } from "../pieces";
 import { applyDeltaToStates, findSnap } from "../snap";
-import type { PieceState, Point, QuarterRotation } from "../types";
-import { isLevelSolved } from "../validation";
+import type { PieceState, PieceTransform, Point, QuarterRotation, TargetDefinition } from "../types";
+import { isTargetSolved } from "../validation";
 
 interface Bounds {
   minX: number;
@@ -24,35 +24,8 @@ interface Bounds {
   maxY: number;
 }
 
-const BASE_T_SILHOUETTE: Point[] = [
-  { x: 0, y: 0 },
-  { x: 3, y: 0 },
-  { x: 3, y: 1 },
-  { x: 2, y: 1 },
-  { x: 2, y: 4 },
-  { x: 1, y: 4 },
-  { x: 1, y: 1 },
-  { x: 0, y: 1 },
-];
-
 function rotateValue(rotation: QuarterRotation, delta: 90 | -90): QuarterRotation {
   return ((rotation + delta + 360) % 360) as QuarterRotation;
-}
-
-function rotatePoint(point: Point, rotation: QuarterRotation): Point {
-  if (rotation === 90) {
-    return { x: -point.y, y: point.x };
-  }
-
-  if (rotation === 180) {
-    return { x: -point.x, y: -point.y };
-  }
-
-  if (rotation === 270) {
-    return { x: point.y, y: -point.x };
-  }
-
-  return point;
 }
 
 function boundsForPoints(points: Point[]): Bounds {
@@ -70,15 +43,6 @@ function boundsForPoints(points: Point[]): Bounds {
       maxY: Number.NEGATIVE_INFINITY,
     },
   );
-}
-
-function targetSilhouette(rotation: QuarterRotation): Point[] {
-  const rotated = BASE_T_SILHOUETTE.map((point) => rotatePoint(point, rotation));
-  const bounds = boundsForPoints(rotated);
-  return rotated.map((point) => ({
-    x: point.x - bounds.minX,
-    y: point.y - bounds.minY,
-  }));
 }
 
 function formatTime(totalSeconds: number): string {
@@ -105,17 +69,67 @@ function groupIdsFor(states: PieceState[], pieceId: string): Set<string> {
   return new Set(states.filter((state) => state.groupId === groupId).map((state) => state.pieceId));
 }
 
+function targetKey(levelId: string, targetId: string): string {
+  return `${levelId}:${targetId}`;
+}
+
+function targetImageUrl(figureNumber: number): string {
+  return `${import.meta.env.BASE_URL}t-puzzle/targets/figure-${String(figureNumber).padStart(3, "0")}.png`;
+}
+
+function statesFromSolution(solution: PieceTransform[]): PieceState[] {
+  return solution.map((transform, index) => ({
+    pieceId: transform.pieceId,
+    position: { x: transform.x, y: transform.y },
+    rotation: transform.rotation,
+    flipped: transform.flipped,
+    zIndex: index + 1,
+    groupId: "target",
+    lastValidPosition: { x: transform.x, y: transform.y },
+  }));
+}
+
+function solutionPolygons(target: TargetDefinition): Point[][] {
+  const solution = target.solutions[0];
+  if (!solution) {
+    return [];
+  }
+
+  return statesFromSolution(solution).map((state) =>
+    transformedVertices(piecesById[state.pieceId], state),
+  );
+}
+
+function boundsForPolygons(polygons: Point[][]) {
+  const points = polygons.flat();
+  if (points.length === 0) {
+    return { x: 0, y: 0, width: 1, height: 1 };
+  }
+
+  const bounds = boundsForPoints(points);
+  const padding = 0.18;
+  return {
+    x: bounds.minX - padding,
+    y: bounds.minY - padding,
+    width: bounds.maxX - bounds.minX + padding * 2,
+    height: bounds.maxY - bounds.minY + padding * 2,
+  };
+}
+
 export function TPuzzleGame() {
   const [levelIndex, setLevelIndex] = useState(0);
+  const [targetIndex, setTargetIndex] = useState(0);
   const [states, setStates] = useState<PieceState[]>(() => createInitialPieceStates());
   const [selectedPieceId, setSelectedPieceId] = useState<string>("blue-bar");
-  const [message, setMessage] = useState("Uloz cztery elementy w sylwetke litery T.");
+  const [message, setMessage] = useState("Uloz cztery elementy w sylwetke celu.");
   const [isSolved, setIsSolved] = useState(false);
   const [moves, setMoves] = useState(0);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [startedAt, setStartedAt] = useState(() => Date.now());
   const [completedLevels, setCompletedLevels] = useState<Set<number>>(() => new Set());
+  const [completedTargets, setCompletedTargets] = useState<Set<string>>(() => new Set());
   const svgRef = useRef<SVGSVGElement | null>(null);
+  const advanceTimerRef = useRef<number | null>(null);
   const dragRef = useRef<{
     pointerId: number;
     startPoint: Point;
@@ -124,23 +138,16 @@ export function TPuzzleGame() {
   } | null>(null);
 
   const level = tPuzzleLevels[levelIndex];
-  const targetRotation = level.solutions[0]?.[0]?.rotation ?? 0;
-  const targetPoints = useMemo(() => targetSilhouette(targetRotation), [targetRotation]);
-  const previewBounds = useMemo(() => {
-    const bounds = boundsForPoints(targetPoints);
-    const padding = 0.18;
-    return {
-      x: bounds.minX - padding,
-      y: bounds.minY - padding,
-      width: bounds.maxX - bounds.minX + padding * 2,
-      height: bounds.maxY - bounds.minY + padding * 2,
-    };
-  }, [targetPoints]);
-
+  const target = level.targets[targetIndex];
+  const currentTargetKey = targetKey(level.id, target.id);
+  const targetPolygons = useMemo(() => solutionPolygons(target), [target]);
+  const previewBounds = useMemo(() => boundsForPolygons(targetPolygons), [targetPolygons]);
   const sortedStates = useMemo(
     () => [...states].sort((a, b) => a.zIndex - b.zIndex),
     [states],
   );
+  const isFinalTarget = targetIndex === level.targets.length - 1;
+  const isFinalLevel = levelIndex === tPuzzleLevels.length - 1;
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -167,12 +174,24 @@ export function TPuzzleGame() {
     return () => window.removeEventListener("keydown", onKeyDown);
   });
 
+  useEffect(() => {
+    return () => clearScheduledAdvance();
+  }, []);
+
+  function clearScheduledAdvance() {
+    if (advanceTimerRef.current !== null) {
+      window.clearTimeout(advanceTimerRef.current);
+      advanceTimerRef.current = null;
+    }
+  }
+
   function restartTimer() {
     setStartedAt(Date.now());
     setElapsedSeconds(0);
   }
 
-  function resetBoard(nextMessage = "Poziom zresetowany.") {
+  function resetBoard(nextMessage = "Figura zresetowana.") {
+    clearScheduledAdvance();
     setStates(createInitialPieceStates());
     setSelectedPieceId("blue-bar");
     setIsSolved(false);
@@ -181,17 +200,36 @@ export function TPuzzleGame() {
     restartTimer();
   }
 
+  function isLevelUnlocked(index: number): boolean {
+    return index === 0 || completedLevels.has(index - 1);
+  }
+
+  function isTargetUnlocked(index: number): boolean {
+    if (index === 0) {
+      return true;
+    }
+
+    return completedTargets.has(targetKey(level.id, level.targets[index - 1].id));
+  }
+
   function selectLevel(index: number) {
     if (!isLevelUnlocked(index)) {
       return;
     }
 
+    const nextLevel = tPuzzleLevels[index];
     setLevelIndex(index);
-    resetBoard(`Poziom ${tPuzzleLevels[index].displayNumber}: ${tPuzzleLevels[index].name}`);
+    setTargetIndex(0);
+    resetBoard(`Poziom ${nextLevel.displayNumber}: ${nextLevel.targets[0].name}`);
   }
 
-  function isLevelUnlocked(index: number): boolean {
-    return index === 0 || completedLevels.has(index - 1);
+  function selectTarget(index: number) {
+    if (!isTargetUnlocked(index)) {
+      return;
+    }
+
+    setTargetIndex(index);
+    resetBoard(`Figura ${index + 1}/${level.targets.length}: ${level.targets[index].name}`);
   }
 
   function selectAndLift(pieceId: string) {
@@ -232,7 +270,7 @@ export function TPuzzleGame() {
       }
 
       setMoves((value) => value + 1);
-      setTimeout(() => checkLevel(next), 0);
+      setTimeout(() => checkTarget(next), 0);
       return next;
     });
   }
@@ -254,7 +292,15 @@ export function TPuzzleGame() {
       }
 
       setMoves((value) => value + 1);
-      setTimeout(() => checkLevel(next), 0);
+      setTimeout(() => checkTarget(next), 0);
+      return next;
+    });
+  }
+
+  function completeTarget() {
+    setCompletedTargets((current) => {
+      const next = new Set(current);
+      next.add(currentTargetKey);
       return next;
     });
   }
@@ -267,34 +313,68 @@ export function TPuzzleGame() {
     });
   }
 
-  function checkLevel(nextStates = states) {
+  function scheduleAdvance() {
+    if (isFinalTarget && isFinalLevel) {
+      return;
+    }
+
+    clearScheduledAdvance();
+    advanceTimerRef.current = window.setTimeout(() => {
+      goToNextTarget();
+    }, 900);
+  }
+
+  function checkTarget(nextStates = states) {
     if (hasAnyOverlap(nextStates, piecesById)) {
       setMessage("Elementy nachodza na siebie. Popraw uklad.");
       setIsSolved(false);
       return;
     }
 
-    const solved = isLevelSolved(level, nextStates);
+    const solved = isTargetSolved(target, level.validation, nextStates);
     setIsSolved(solved);
 
     if (solved) {
-      completeLevel();
-      setMessage("Poprawnie. Poziom zaliczony.");
+      completeTarget();
+
+      if (isFinalTarget) {
+        completeLevel();
+      }
+
+      setMessage(
+        isFinalTarget
+          ? "Poprawnie. Poziom zaliczony."
+          : "Poprawnie. Za chwile kolejna figura.",
+      );
+      scheduleAdvance();
       return;
     }
 
     setMessage("Jeszcze nie. Zbuduj jednolita sylwetke celu.");
   }
 
-  function goToNextLevel() {
-    const nextIndex = Math.min(levelIndex + 1, tPuzzleLevels.length - 1);
-    setCompletedLevels((current) => {
-      const next = new Set(current);
-      next.add(levelIndex);
-      return next;
-    });
-    setLevelIndex(nextIndex);
-    resetBoard(`Poziom ${tPuzzleLevels[nextIndex].displayNumber}: ${tPuzzleLevels[nextIndex].name}`);
+  function goToNextTarget() {
+    clearScheduledAdvance();
+
+    if (!isFinalTarget) {
+      const nextTargetIndex = targetIndex + 1;
+      setTargetIndex(nextTargetIndex);
+      resetBoard(`Figura ${nextTargetIndex + 1}/${level.targets.length}: ${level.targets[nextTargetIndex].name}`);
+      return;
+    }
+
+    completeLevel();
+
+    if (!isFinalLevel) {
+      const nextLevelIndex = levelIndex + 1;
+      const nextLevel = tPuzzleLevels[nextLevelIndex];
+      setLevelIndex(nextLevelIndex);
+      setTargetIndex(0);
+      resetBoard(`Poziom ${nextLevel.displayNumber}: ${nextLevel.targets[0].name}`);
+      return;
+    }
+
+    setMessage("Poprawnie. Wszystkie dostepne poziomy zaliczone.");
   }
 
   function onPointerDown(event: ReactPointerEvent<SVGPolygonElement>, pieceId: string) {
@@ -359,7 +439,7 @@ export function TPuzzleGame() {
       );
 
       setMoves((value) => value + 1);
-      setTimeout(() => checkLevel(withLastValid), 0);
+      setTimeout(() => checkTarget(withLastValid), 0);
       return withLastValid;
     });
     dragRef.current = null;
@@ -411,15 +491,50 @@ export function TPuzzleGame() {
           })}
         </div>
 
+        <div className="panel-section target-tabs" aria-label="Figury w poziomie">
+          {level.targets.map((entry, index) => {
+            const unlocked = isTargetUnlocked(index);
+            const completed = completedTargets.has(targetKey(level.id, entry.id));
+            return (
+              <button
+                key={entry.id}
+                type="button"
+                className={index === targetIndex ? "target-tab active" : "target-tab"}
+                disabled={!unlocked}
+                onClick={() => selectTarget(index)}
+                title={entry.name}
+              >
+                <span>{index + 1}</span>
+                {completed ? <Check size={14} /> : null}
+              </button>
+            );
+          })}
+        </div>
+
         <div className="panel-section preview-section">
-          <p className="section-label">Cel</p>
-          <svg
-            viewBox={`${previewBounds.x} ${previewBounds.y} ${previewBounds.width} ${previewBounds.height}`}
-            className="preview-svg"
-            aria-label="Jednolity podglad figury docelowej"
-          >
-            <polygon points={pathFromPoints(targetPoints)} className="target-silhouette" />
-          </svg>
+          <p className="section-label">Cel {targetIndex + 1}/{level.targets.length}</p>
+          {target.maskFigureNumber ? (
+            <img
+              src={targetImageUrl(target.maskFigureNumber)}
+              className="preview-image"
+              alt={`Jednolity podglad figury ${target.displayNumber}`}
+              draggable={false}
+            />
+          ) : (
+            <svg
+              viewBox={`${previewBounds.x} ${previewBounds.y} ${previewBounds.width} ${previewBounds.height}`}
+              className="preview-svg"
+              aria-label="Jednolity podglad figury docelowej"
+            >
+              {targetPolygons.map((points, index) => (
+                <polygon
+                  key={`${target.id}-${index}`}
+                  points={pathFromPoints(points)}
+                  className="target-silhouette"
+                />
+              ))}
+            </svg>
+          )}
         </div>
 
         <div className="panel-section controls">
@@ -435,7 +550,7 @@ export function TPuzzleGame() {
             <FlipHorizontal2 size={20} />
             <span>Odbij</span>
           </button>
-          <button type="button" onClick={() => resetBoard()} title="Resetuj poziom">
+          <button type="button" onClick={() => resetBoard()} title="Resetuj figure">
             <RefreshCcw size={20} />
             <span>Reset</span>
           </button>
@@ -444,10 +559,10 @@ export function TPuzzleGame() {
         <button
           type="button"
           className="next-button"
-          disabled={!isSolved || levelIndex === tPuzzleLevels.length - 1}
-          onClick={goToNextLevel}
+          disabled={!isSolved || (isFinalTarget && isFinalLevel)}
+          onClick={goToNextTarget}
         >
-          <span>Nastepny poziom</span>
+          <span>{isFinalTarget ? "Nastepny poziom" : "Nastepna figura"}</span>
           <ChevronRight size={20} />
         </button>
       </aside>

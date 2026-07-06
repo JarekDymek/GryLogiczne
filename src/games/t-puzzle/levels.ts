@@ -1,6 +1,6 @@
 import { geometryTolerance } from "./config";
 import { pieceDefinitions } from "./pieces";
-import type { LevelDefinition, PieceTransform, QuarterRotation } from "./types";
+import type { LevelDefinition, PieceTransform, QuarterRotation, TargetDefinition } from "./types";
 
 function round(value: number): number {
   return Math.round(value * 1000) / 1000;
@@ -35,25 +35,51 @@ function tSolution(rotation: QuarterRotation): PieceTransform[] {
   });
 }
 
-export const figureOneSolution = tSolution(0);
+function exactTarget(
+  displayNumber: number,
+  name: string,
+  rotation: QuarterRotation,
+): TargetDefinition {
+  return {
+    id: `exact-t-${displayNumber}`,
+    displayNumber,
+    name,
+    sourceReference: {
+      file: "matematyczny schemat T-puzzle",
+      figure: displayNumber,
+    },
+    previewScale: 0.35,
+    solutions: [tSolution(rotation)],
+  };
+}
+
+function catalogTarget(figureNumber: number, name = `Figura ${figureNumber}`): TargetDefinition {
+  return {
+    id: `catalog-${String(figureNumber).padStart(3, "0")}`,
+    displayNumber: figureNumber,
+    name,
+    sourceReference: {
+      file: "Figury - czarne.jpeg",
+      figure: figureNumber,
+    },
+    previewScale: 0.35,
+    maskFigureNumber: figureNumber,
+    solutions: [],
+  };
+}
 
 function defineLevel(
   displayNumber: number,
   name: string,
   difficulty: LevelDefinition["difficulty"],
-  rotation: QuarterRotation,
+  targets: TargetDefinition[],
 ): LevelDefinition {
   return {
-    id: `t-puzzle-${String(displayNumber).padStart(3, "0")}`,
+    id: `t-puzzle-stage-${String(displayNumber).padStart(2, "0")}`,
     displayNumber,
     name,
     difficulty,
-    sourceReference: {
-      file: "Figury 1.png",
-      figure: displayNumber,
-    },
-    previewScale: 0.35,
-    solutions: [tSolution(rotation)],
+    targets,
     validation: {
       allowGlobalRotation: false,
       allowGlobalMirror: false,
@@ -66,10 +92,37 @@ function defineLevel(
   };
 }
 
+export const figureOneSolution = tSolution(0);
+
 export const tPuzzleLevels: LevelDefinition[] = [
-  defineLevel(1, "Klasyczna litera T", "easy", 0),
-  defineLevel(2, "T obrocone w lewo", "easy", 270),
-  defineLevel(3, "T obrocone w prawo", "medium", 90),
-  defineLevel(4, "T do gory nogami", "medium", 180),
-  defineLevel(5, "T bez podpowiedzi", "hard", 0),
+  defineLevel(1, "Litera T", "easy", [
+    exactTarget(1, "Klasyczna litera T", 0),
+    exactTarget(2, "T obrocone w prawo", 90),
+    exactTarget(3, "T obrocone w lewo", 270),
+  ]),
+  defineLevel(2, "Podstawowe sylwetki", "easy", [
+    catalogTarget(5),
+    catalogTarget(6),
+    catalogTarget(7),
+  ]),
+  defineLevel(3, "Niskie figury", "medium", [
+    catalogTarget(25),
+    catalogTarget(26),
+    catalogTarget(27),
+  ]),
+  defineLevel(4, "Pionowe figury", "medium", [
+    catalogTarget(37),
+    catalogTarget(39),
+    catalogTarget(40),
+  ]),
+  defineLevel(5, "Symetrie", "hard", [
+    catalogTarget(49),
+    catalogTarget(50),
+    catalogTarget(51),
+  ]),
+  defineLevel(6, "Zaawansowane", "master", [
+    catalogTarget(81),
+    catalogTarget(82),
+    catalogTarget(83),
+  ]),
 ];

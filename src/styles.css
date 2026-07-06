@@ -157,7 +157,7 @@ button:disabled {
 }
 
 .level-tabs {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(48px, 1fr));
 }
 
 .level-tab {
@@ -184,17 +184,42 @@ button:disabled {
   color: #123f83;
 }
 
+.target-tabs {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.target-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+}
+
+.target-tab.active {
+  border-color: #1f5fbf;
+  background: #e9f1ff;
+  color: #123f83;
+}
+
 .preview-section {
   padding-top: 2px;
 }
 
-.preview-svg {
+.preview-svg,
+.preview-image {
   display: block;
   width: 100%;
-  max-height: 150px;
+  height: 150px;
   border: 1px solid #dfe7f1;
   border-radius: 8px;
   background: #fbfcfe;
+}
+
+.preview-image {
+  object-fit: contain;
+  padding: 8px;
+  user-select: none;
 }
 
 .target-silhouette {
@@ -325,7 +350,7 @@ button:disabled {
   }
 
   .level-tabs {
-    grid-template-columns: repeat(5, minmax(42px, 1fr));
+    grid-template-columns: repeat(3, minmax(42px, 1fr));
   }
 
   .level-tab small {
