@@ -68,29 +68,29 @@ describe("T-Puzzle geometry", () => {
 
   it("detects real overlap", () => {
     const states = solutionStates().map((state) =>
-      state.pieceId === "blue-bar" ? { ...state, position: { x: -1.6, y: 0 } } : state,
+      state.pieceId === "blue-bar" ? { ...state, position: { x: -1, y: -1 } } : state,
     );
     expect(hasAnyOverlap(states, piecesById)).toBe(true);
   });
 
-  it("keeps the exact reference T area stable", () => {
+  it("keeps the centered figure 1 T area stable", () => {
     const totalArea = pieceDefinitions.reduce(
       (sum, piece) => sum + polygonArea(piece.vertices),
       0,
     );
-    expect(totalArea).toBeCloseTo(7, 8);
+    expect(totalArea).toBeCloseTo(6, 8);
   });
 
-  it("uses the Wikimedia reference T-puzzle piece family", () => {
+  it("uses the four-piece T-puzzle family from the reference image", () => {
     const vertexCounts = Object.fromEntries(
       pieceDefinitions.map((piece) => [piece.id, piece.vertices.length]),
     );
 
     expect(vertexCounts).toEqual({
       "blue-bar": 4,
-      "green-wing": 3,
-      "pink-keystone": 5,
-      "yellow-cap": 4,
+      "green-wing": 5,
+      "pink-keystone": 4,
+      "yellow-cap": 3,
     });
   });
 
@@ -110,7 +110,7 @@ describe("T-Puzzle geometry", () => {
     const ys = vertices.map((point) => point.y);
 
     expect(Math.min(...xs)).toBeCloseTo(0, 8);
-    expect(Math.max(...xs)).toBeCloseTo(4, 8);
+    expect(Math.max(...xs)).toBeCloseTo(3, 8);
     expect(Math.min(...ys)).toBeCloseTo(0, 8);
     expect(Math.max(...ys)).toBeCloseTo(4, 8);
     expect(hasAnyOverlap(solutionStates(), piecesById)).toBe(false);

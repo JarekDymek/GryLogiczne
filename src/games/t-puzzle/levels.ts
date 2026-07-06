@@ -1,12 +1,12 @@
 import { geometryTolerance } from "./config";
 import { pieceDefinitions } from "./pieces";
-import type { LevelDefinition, PieceTransform } from "./types";
+import type { LevelDefinition, PieceTransform, QuarterRotation } from "./types";
 
 function round(value: number): number {
   return Math.round(value * 1000) / 1000;
 }
 
-function rotatePoint(x: number, y: number, degrees: 0 | 90 | 180 | 270) {
+function rotatePoint(x: number, y: number, degrees: QuarterRotation) {
   if (degrees === 90) {
     return { x: -y, y: x };
   }
@@ -22,7 +22,7 @@ function rotatePoint(x: number, y: number, degrees: 0 | 90 | 180 | 270) {
   return { x, y };
 }
 
-function tSolution(rotation: 0 | 90 | 180 | 270): PieceTransform[] {
+function tSolution(rotation: QuarterRotation): PieceTransform[] {
   return pieceDefinitions.map((piece) => {
     const rotatedCentroid = rotatePoint(piece.centroid.x, piece.centroid.y, rotation);
     return {
@@ -41,7 +41,7 @@ function defineLevel(
   displayNumber: number,
   name: string,
   difficulty: LevelDefinition["difficulty"],
-  rotation: 0 | 90 | 180 | 270,
+  rotation: QuarterRotation,
 ): LevelDefinition {
   return {
     id: `t-puzzle-${String(displayNumber).padStart(3, "0")}`,
@@ -68,8 +68,8 @@ function defineLevel(
 
 export const tPuzzleLevels: LevelDefinition[] = [
   defineLevel(1, "Klasyczna litera T", "easy", 0),
-  defineLevel(2, "T obrócone w lewo", "easy", 270),
-  defineLevel(3, "T obrócone w prawo", "medium", 90),
-  defineLevel(4, "T do góry nogami", "medium", 180),
+  defineLevel(2, "T obrocone w lewo", "easy", 270),
+  defineLevel(3, "T obrocone w prawo", "medium", 90),
+  defineLevel(4, "T do gory nogami", "medium", 180),
   defineLevel(5, "T bez podpowiedzi", "hard", 0),
 ];

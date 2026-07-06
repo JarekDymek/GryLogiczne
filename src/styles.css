@@ -199,8 +199,7 @@ button:disabled {
 
 .target-silhouette {
   fill: #111827;
-  stroke: #ffffff;
-  stroke-width: 0.025;
+  stroke: none;
 }
 
 .controls {
@@ -242,26 +241,6 @@ button:disabled {
   background: #fbfcfe;
 }
 
-.target {
-  opacity: 0.24;
-}
-
-.target-guided {
-  opacity: 0.32;
-}
-
-.target-shape {
-  fill: #94a3b8;
-  stroke: #475569;
-  stroke-dasharray: 0.12 0.08;
-  stroke-width: 0.035;
-  pointer-events: none;
-}
-
-.target-guided .target-shape {
-  stroke-dasharray: none;
-}
-
 .piece {
   stroke: #243044;
   stroke-width: 0.035;
@@ -280,27 +259,6 @@ button:disabled {
 
 .piece-neutral {
   fill: #111827;
-}
-
-.piece-blue {
-  fill: #2f6fcf;
-}
-
-.piece-green {
-  fill: #20936b;
-}
-
-.piece-red {
-  fill: #e11d1d;
-}
-
-.piece-yellow {
-  fill: #f2b84b;
-}
-
-.centroid {
-  fill: #0f172a;
-  pointer-events: none;
 }
 
 @media (max-width: 900px) {
@@ -334,7 +292,7 @@ button:disabled {
   }
 
   .controls {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
