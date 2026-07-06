@@ -4,7 +4,7 @@ import { tPuzzleLevels } from "./levels";
 import { createInitialPieceStates, pieceDefinitions, piecesById, T_PUZZLE_HEIGHT } from "./pieces";
 import { applyDeltaToStates, findSnap } from "./snap";
 import { isTargetSolved } from "./validation";
-import type { PieceState, QuarterRotation } from "./types";
+import type { PieceRotation, PieceState } from "./types";
 
 function solutionStates(): PieceState[] {
   return createInitialPieceStates().map((state) => ({
@@ -18,7 +18,7 @@ function solutionStates(): PieceState[] {
 }
 
 describe("T-Puzzle geometry", () => {
-  it("keeps polygon area after four quarter rotations", () => {
+  it("keeps polygon area after eight 45-degree rotations", () => {
     for (const piece of pieceDefinitions) {
       const base: PieceState = {
         pieceId: piece.id,
@@ -30,8 +30,8 @@ describe("T-Puzzle geometry", () => {
         lastValidPosition: { x: 0, y: 0 },
       };
       const area = polygonArea(transformedVertices(piece, base));
-      const rotated = [90, 180, 270, 0].reduce(
-        (state, rotation) => ({ ...state, rotation: rotation as QuarterRotation }),
+      const rotated = [45, 90, 135, 180, 225, 270, 315, 0].reduce(
+        (state, rotation) => ({ ...state, rotation: rotation as PieceRotation }),
         base,
       );
       expect(polygonArea(transformedVertices(piece, rotated))).toBeCloseTo(area, 8);
@@ -172,13 +172,18 @@ describe("T-Puzzle geometry", () => {
     }
   });
 
+  it("builds the full MOW progression with ten stages", () => {
+    expect(tPuzzleLevels).toHaveLength(10);
+    expect(tPuzzleLevels[2].name).toBe("Obrot o 45 stopni");
+  });
+
   it("accepts the exact vector solution for figure 1", () => {
     expect(isTargetSolved(tPuzzleLevels[0].targets[0], tPuzzleLevels[0].validation, solutionStates())).toBe(true);
   });
 
   it("rejects a visually plausible but wrong transform", () => {
     const wrong = solutionStates().map((state) =>
-      state.pieceId === "yellow-cap" ? { ...state, rotation: 90 as QuarterRotation } : state,
+      state.pieceId === "yellow-cap" ? { ...state, rotation: 90 as PieceRotation } : state,
     );
     expect(isTargetSolved(tPuzzleLevels[0].targets[0], tPuzzleLevels[0].validation, wrong)).toBe(false);
   });

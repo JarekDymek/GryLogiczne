@@ -1,25 +1,20 @@
 import { geometryTolerance } from "./config";
 import { pieceDefinitions, T_PUZZLE_HEIGHT } from "./pieces";
-import type { LevelDefinition, PieceTransform, Point, QuarterRotation, TargetDefinition } from "./types";
+import type { LevelDefinition, PieceRotation, PieceTransform, Point, TargetDefinition } from "./types";
 
 function round(value: number): number {
   return Math.round(value * 1000) / 1000;
 }
 
-function rotatePoint(x: number, y: number, degrees: QuarterRotation) {
-  if (degrees === 90) {
-    return { x: -y, y: x };
-  }
+function rotatePoint(x: number, y: number, degrees: PieceRotation): Point {
+  const radians = (degrees * Math.PI) / 180;
+  const cos = Math.cos(radians);
+  const sin = Math.sin(radians);
 
-  if (degrees === 180) {
-    return { x: -x, y: -y };
-  }
-
-  if (degrees === 270) {
-    return { x: y, y: -x };
-  }
-
-  return { x, y };
+  return {
+    x: x * cos - y * sin,
+    y: x * sin + y * cos,
+  };
 }
 
 const BASE_T_OUTLINE: Point[] = [
@@ -33,7 +28,7 @@ const BASE_T_OUTLINE: Point[] = [
   { x: 0, y: 1 },
 ];
 
-function outlineForRotation(rotation: QuarterRotation): Point[] {
+function outlineForRotation(rotation: PieceRotation): Point[] {
   const rotated = BASE_T_OUTLINE.map((point) => rotatePoint(point.x, point.y, rotation));
   const minX = Math.min(...rotated.map((point) => point.x));
   const minY = Math.min(...rotated.map((point) => point.y));
@@ -44,7 +39,7 @@ function outlineForRotation(rotation: QuarterRotation): Point[] {
   }));
 }
 
-function tSolution(rotation: QuarterRotation): PieceTransform[] {
+function tSolution(rotation: PieceRotation): PieceTransform[] {
   return pieceDefinitions.map((piece) => {
     const rotatedCentroid = rotatePoint(piece.centroid.x, piece.centroid.y, rotation);
     return {
@@ -60,7 +55,7 @@ function tSolution(rotation: QuarterRotation): PieceTransform[] {
 function exactTarget(
   displayNumber: number,
   name: string,
-  rotation: QuarterRotation,
+  rotation: PieceRotation,
 ): TargetDefinition {
   return {
     id: `exact-t-${displayNumber}`,
@@ -118,7 +113,7 @@ function defineLevel(
 export const figureOneSolution = tSolution(0);
 
 export const tPuzzleLevels: LevelDefinition[] = [
-  defineLevel(1, "Litera T", "easy", [
+  defineLevel(1, "Start: litera T", "easy", [
     exactTarget(1, "Klasyczna litera T", 0),
     exactTarget(2, "T obrocone w prawo", 90),
     exactTarget(3, "T obrocone w lewo", 270),
@@ -128,22 +123,42 @@ export const tPuzzleLevels: LevelDefinition[] = [
     catalogTarget(6),
     catalogTarget(7),
   ]),
-  defineLevel(3, "Niskie figury", "medium", [
+  defineLevel(3, "Obrot o 45 stopni", "easy", [
+    catalogTarget(8),
+    catalogTarget(9),
+    catalogTarget(10),
+  ]),
+  defineLevel(4, "Planowanie ruchow", "medium", [
+    catalogTarget(13),
+    catalogTarget(14),
+    catalogTarget(15),
+  ]),
+  defineLevel(5, "Niskie figury", "medium", [
     catalogTarget(25),
     catalogTarget(26),
     catalogTarget(27),
   ]),
-  defineLevel(4, "Pionowe figury", "medium", [
+  defineLevel(6, "Pionowe figury", "medium", [
     catalogTarget(37),
     catalogTarget(39),
     catalogTarget(40),
   ]),
-  defineLevel(5, "Symetrie", "hard", [
+  defineLevel(7, "Odbicia i symetrie", "hard", [
     catalogTarget(49),
     catalogTarget(50),
     catalogTarget(51),
   ]),
-  defineLevel(6, "Zaawansowane", "master", [
+  defineLevel(8, "Cierpliwosc", "hard", [
+    catalogTarget(57),
+    catalogTarget(58),
+    catalogTarget(59),
+  ]),
+  defineLevel(9, "Wyzwanie", "master", [
+    catalogTarget(73),
+    catalogTarget(74),
+    catalogTarget(75),
+  ]),
+  defineLevel(10, "Mistrzowskie", "master", [
     catalogTarget(81),
     catalogTarget(82),
     catalogTarget(83),

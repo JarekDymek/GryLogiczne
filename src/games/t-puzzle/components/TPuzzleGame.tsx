@@ -14,7 +14,7 @@ import { hasAnyOverlap, pathFromPoints, transformedVertices } from "../geometry"
 import { tPuzzleLevels } from "../levels";
 import { createInitialPieceStates, piecesById } from "../pieces";
 import { applyDeltaToStates, findSnap } from "../snap";
-import type { PieceState, PieceTransform, Point, QuarterRotation, TargetDefinition } from "../types";
+import type { PieceRotation, PieceState, PieceTransform, Point, TargetDefinition } from "../types";
 import { isTargetSolved } from "../validation";
 
 interface Bounds {
@@ -24,8 +24,8 @@ interface Bounds {
   maxY: number;
 }
 
-function rotateValue(rotation: QuarterRotation, delta: 90 | -90): QuarterRotation {
-  return ((rotation + delta + 360) % 360) as QuarterRotation;
+function rotateValue(rotation: PieceRotation, delta: 45 | -45 | 90 | -90): PieceRotation {
+  return ((rotation + delta + 360) % 360) as PieceRotation;
 }
 
 function boundsForPoints(points: Point[]): Bounds {
@@ -165,11 +165,11 @@ export function TPuzzleGame() {
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if (event.key.toLowerCase() === "q") {
-        rotateSelected(-90);
+        rotateSelected(-45);
       }
 
       if (event.key.toLowerCase() === "e") {
-        rotateSelected(90);
+        rotateSelected(45);
       }
     }
 
@@ -254,7 +254,7 @@ export function TPuzzleGame() {
     );
   }
 
-  function rotateSelected(delta: 90 | -90) {
+  function rotateSelected(delta: 45 | -45 | 90 | -90) {
     if (isSolved) {
       return;
     }
@@ -548,13 +548,21 @@ export function TPuzzleGame() {
         </div>
 
         <div className="panel-section controls">
-          <button type="button" onClick={() => rotateSelected(-90)} title="Obroc w lewo">
+          <button type="button" onClick={() => rotateSelected(-45)} title="Obroc o 45 stopni w lewo">
             <RotateCcw size={20} />
-            <span>Lewo</span>
+            <span>45 lewo</span>
           </button>
-          <button type="button" onClick={() => rotateSelected(90)} title="Obroc w prawo">
+          <button type="button" onClick={() => rotateSelected(45)} title="Obroc o 45 stopni w prawo">
             <RotateCw size={20} />
-            <span>Prawo</span>
+            <span>45 prawo</span>
+          </button>
+          <button type="button" onClick={() => rotateSelected(-90)} title="Obroc o 90 stopni w lewo">
+            <RotateCcw size={20} />
+            <span>90 lewo</span>
+          </button>
+          <button type="button" onClick={() => rotateSelected(90)} title="Obroc o 90 stopni w prawo">
+            <RotateCw size={20} />
+            <span>90 prawo</span>
           </button>
           <button type="button" onClick={flipSelected} title="Odbij element">
             <FlipHorizontal2 size={20} />

@@ -14,7 +14,7 @@ export interface FlipAxis {
 }
 
 export type PieceId = "blue-bar" | "green-wing" | "pink-keystone" | "yellow-cap";
-export type QuarterRotation = 0 | 90 | 180 | 270;
+export type PieceRotation = 0 | 45 | 90 | 135 | 180 | 225 | 270 | 315;
 
 export interface PieceDefinition {
   id: PieceId;
@@ -29,7 +29,7 @@ export interface PieceDefinition {
 export interface PieceState {
   pieceId: PieceId;
   position: Point;
-  rotation: QuarterRotation;
+  rotation: PieceRotation;
   flipped: boolean;
   zIndex: number;
   groupId: string;
@@ -40,7 +40,7 @@ export interface PieceTransform {
   pieceId: PieceId;
   x: number;
   y: number;
-  rotation: QuarterRotation;
+  rotation: PieceRotation;
   flipped: boolean;
 }
 
