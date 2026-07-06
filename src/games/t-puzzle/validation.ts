@@ -210,5 +210,9 @@ export function isLevelSolved(level: LevelDefinition, states: PieceState[]): boo
     matchesSolution(actual, normalizeSolution(solution), level.validation.positionTolerance),
   );
 
-  return exactSolution || matchesTargetSilhouette(level.displayNumber, states);
+  if (level.solutions.length > 0) {
+    return exactSolution;
+  }
+
+  return matchesTargetSilhouette(level.displayNumber, states);
 }

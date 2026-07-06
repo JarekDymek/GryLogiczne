@@ -3,7 +3,7 @@ import { hasAnyOverlap, polygonArea, transformedVertices } from "./geometry";
 import { tPuzzleLevels } from "./levels";
 import { createInitialPieceStates, pieceDefinitions, piecesById } from "./pieces";
 import { applyDeltaToStates, findSnap } from "./snap";
-import { isLevelSolved, silhouetteSimilarityForLevel } from "./validation";
+import { isLevelSolved } from "./validation";
 import type { PieceState, QuarterRotation } from "./types";
 
 function solutionStates(): PieceState[] {
@@ -73,12 +73,12 @@ describe("T-Puzzle geometry", () => {
     expect(hasAnyOverlap(states, piecesById)).toBe(true);
   });
 
-  it("keeps the Wikimedia reference piece area stable", () => {
+  it("keeps the exact reference T area stable", () => {
     const totalArea = pieceDefinitions.reduce(
       (sum, piece) => sum + polygonArea(piece.vertices),
       0,
     );
-    expect(totalArea).toBeCloseTo(5.65, 8);
+    expect(totalArea).toBeCloseTo(7, 8);
   });
 
   it("uses the Wikimedia reference T-puzzle piece family", () => {
@@ -102,11 +102,21 @@ describe("T-Puzzle geometry", () => {
     expect(isLevelSolved(tPuzzleLevels[0], shifted)).toBe(true);
   });
 
-  it("matches the extracted black target for figure 1", () => {
-    const similarity = silhouetteSimilarityForLevel(1, solutionStates());
+  it("forms the exact unit-constructed T outline", () => {
+    const vertices = solutionStates().flatMap((state) =>
+      transformedVertices(piecesById[state.pieceId], state),
+    );
+    const xs = vertices.map((point) => point.x);
+    const ys = vertices.map((point) => point.y);
 
-    expect(similarity).not.toBeNull();
-    expect(similarity!.intersectionOverUnion).toBeGreaterThan(0.65);
+    expect(Math.min(...xs)).toBeCloseTo(0, 8);
+    expect(Math.max(...xs)).toBeCloseTo(4, 8);
+    expect(Math.min(...ys)).toBeCloseTo(0, 8);
+    expect(Math.max(...ys)).toBeCloseTo(4, 8);
+    expect(hasAnyOverlap(solutionStates(), piecesById)).toBe(false);
+  });
+
+  it("accepts the exact vector solution for figure 1", () => {
     expect(isLevelSolved(tPuzzleLevels[0], solutionStates())).toBe(true);
   });
 
