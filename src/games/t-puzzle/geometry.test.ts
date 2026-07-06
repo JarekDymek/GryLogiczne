@@ -4,7 +4,7 @@ import { tPuzzleLevels } from "./levels";
 import { createInitialPieceStates, pieceDefinitions, piecesById, T_PUZZLE_HEIGHT } from "./pieces";
 import { applyDeltaToStates, findSnap } from "./snap";
 import { isTargetSolved } from "./validation";
-import type { PieceRotation, PieceState } from "./types";
+import type { PieceRotation, PieceState, PieceTransform } from "./types";
 
 function solutionStates(): PieceState[] {
   return createInitialPieceStates().map((state) => ({
@@ -14,6 +14,18 @@ function solutionStates(): PieceState[] {
     flipped: false,
     groupId: "solution",
     lastValidPosition: { x: 0, y: 0 },
+  }));
+}
+
+function statesFromSolution(solution: PieceTransform[]): PieceState[] {
+  return solution.map((transform, index) => ({
+    pieceId: transform.pieceId,
+    position: { x: transform.x, y: transform.y },
+    rotation: transform.rotation,
+    flipped: transform.flipped,
+    zIndex: index + 1,
+    groupId: "verified-solution",
+    lastValidPosition: { x: transform.x, y: transform.y },
   }));
 }
 
@@ -172,9 +184,30 @@ describe("T-Puzzle geometry", () => {
     }
   });
 
-  it("builds the full MOW progression with ten stages", () => {
-    expect(tPuzzleLevels).toHaveLength(10);
-    expect(tPuzzleLevels[2].name).toBe("Obrot o 45 stopni");
+  it("builds the verified MOW progression", () => {
+    expect(tPuzzleLevels).toHaveLength(3);
+    expect(tPuzzleLevels[1].name).toBe("Obroty skosne");
+  });
+
+  it("ships only targets with verified exact solutions", () => {
+    const allTargets = tPuzzleLevels.flatMap((level) =>
+      level.targets.map((target) => ({ level, target })),
+    );
+
+    expect(allTargets).toHaveLength(9);
+    expect(allTargets[3].target.displayNumber).toBe(4);
+    expect(allTargets[3].target.name).toContain("45");
+
+    for (const { level, target } of allTargets) {
+      expect(target.maskFigureNumber).toBeUndefined();
+      expect(target.solutions.length).toBeGreaterThan(0);
+
+      for (const solution of target.solutions) {
+        const states = statesFromSolution(solution);
+        expect(hasAnyOverlap(states, piecesById)).toBe(false);
+        expect(isTargetSolved(target, level.validation, states)).toBe(true);
+      }
+    }
   });
 
   it("accepts the exact vector solution for figure 1", () => {
