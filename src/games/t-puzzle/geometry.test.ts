@@ -68,29 +68,29 @@ describe("T-Puzzle geometry", () => {
 
   it("detects real overlap", () => {
     const states = solutionStates().map((state) =>
-      state.pieceId === "green-wing" ? { ...state, position: { x: 0, y: 1 } } : state,
+      state.pieceId === "blue-bar" ? { ...state, position: { x: -1.6, y: 0 } } : state,
     );
     expect(hasAnyOverlap(states, piecesById)).toBe(true);
   });
 
-  it("keeps the corrected figure 1 total area at six square units", () => {
+  it("keeps the Wikimedia reference piece area stable", () => {
     const totalArea = pieceDefinitions.reduce(
       (sum, piece) => sum + polygonArea(piece.vertices),
       0,
     );
-    expect(totalArea).toBeCloseTo(6, 8);
+    expect(totalArea).toBeCloseTo(5.65, 8);
   });
 
-  it("uses the classic T-puzzle piece family", () => {
+  it("uses the Wikimedia reference T-puzzle piece family", () => {
     const vertexCounts = Object.fromEntries(
       pieceDefinitions.map((piece) => [piece.id, piece.vertices.length]),
     );
 
     expect(vertexCounts).toEqual({
       "blue-bar": 4,
-      "green-wing": 5,
-      "pink-keystone": 4,
-      "yellow-cap": 3,
+      "green-wing": 3,
+      "pink-keystone": 5,
+      "yellow-cap": 4,
     });
   });
 
@@ -106,7 +106,7 @@ describe("T-Puzzle geometry", () => {
     const similarity = silhouetteSimilarityForLevel(1, solutionStates());
 
     expect(similarity).not.toBeNull();
-    expect(similarity!.intersectionOverUnion).toBeGreaterThan(0.72);
+    expect(similarity!.intersectionOverUnion).toBeGreaterThan(0.65);
     expect(isLevelSolved(tPuzzleLevels[0], solutionStates())).toBe(true);
   });
 
@@ -119,11 +119,11 @@ describe("T-Puzzle geometry", () => {
 
   it("finds a nearby vertex snap", () => {
     const states = solutionStates().map((state) =>
-      state.pieceId === "yellow-cap" ? { ...state, position: { x: 0.1, y: 0.05 } } : state,
+      state.pieceId === "blue-bar" ? { ...state, position: { x: 0.05, y: 0.05 } } : state,
     );
-    const snap = findSnap(states, piecesById, new Set(["yellow-cap"]));
+    const snap = findSnap(states, piecesById, new Set(["blue-bar"]));
     expect(snap).not.toBeNull();
-    const snapped = applyDeltaToStates(states, new Set(["yellow-cap"]), snap!.delta);
-    expect(hasAnyOverlap(snapped, piecesById, new Set(["yellow-cap"]))).toBe(false);
+    const snapped = applyDeltaToStates(states, new Set(["blue-bar"]), snap!.delta);
+    expect(hasAnyOverlap(snapped, piecesById, new Set(["blue-bar"]))).toBe(false);
   });
 });

@@ -19,7 +19,7 @@ export type QuarterRotation = 0 | 90 | 180 | 270;
 export interface PieceDefinition {
   id: PieceId;
   name: string;
-  workColor: "blue" | "green" | "pink" | "yellow";
+  workColor: "blue" | "green" | "red" | "yellow";
   vertices: Point[];
   centroid: Point;
   flipAxis: FlipAxis;
