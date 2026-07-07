@@ -9,8 +9,15 @@ export const geometryTolerance = {
 };
 
 export const boardViewBox = {
-  x: -4.8,
-  y: -2.4,
-  width: 12,
-  height: 8.4,
+  x: -4.2,
+  y: -2.2,
+  width: 10,
+  height: 7.6,
+};
+
+export const mobileBoardViewBox = {
+  x: -3.6,
+  y: -2.5,
+  width: 7.2,
+  height: 11.6,
 };

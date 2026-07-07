@@ -29,6 +29,49 @@ function statesFromSolution(solution: PieceTransform[]): PieceState[] {
   }));
 }
 
+function mirroredFigureOneStates(): PieceState[] {
+  const states: PieceState[] = [
+    {
+      pieceId: "blue-bar",
+      position: { x: 0, y: 0 },
+      rotation: 0,
+      flipped: true,
+      zIndex: 1,
+      groupId: "mirrored-solution",
+      lastValidPosition: { x: 0, y: 0 },
+    },
+    {
+      pieceId: "green-wing",
+      position: { x: 1, y: 0 },
+      rotation: 0,
+      flipped: true,
+      zIndex: 2,
+      groupId: "mirrored-solution",
+      lastValidPosition: { x: 1, y: 0 },
+    },
+    {
+      pieceId: "pink-keystone",
+      position: { x: 2.3333333333333335, y: 0 },
+      rotation: 270,
+      flipped: false,
+      zIndex: 3,
+      groupId: "mirrored-solution",
+      lastValidPosition: { x: 2.3333333333333335, y: 0 },
+    },
+    {
+      pieceId: "yellow-cap",
+      position: { x: -1.5, y: 0 },
+      rotation: 0,
+      flipped: true,
+      zIndex: 4,
+      groupId: "mirrored-solution",
+      lastValidPosition: { x: -1.5, y: 0 },
+    },
+  ];
+
+  return states;
+}
+
 describe("T-Puzzle geometry", () => {
   it("keeps polygon area after eight 45-degree rotations", () => {
     for (const piece of pieceDefinitions) {
@@ -212,6 +255,13 @@ describe("T-Puzzle geometry", () => {
 
   it("accepts the exact vector solution for figure 1", () => {
     expect(isTargetSolved(tPuzzleLevels[0].targets[0], tPuzzleLevels[0].validation, solutionStates())).toBe(true);
+  });
+
+  it("accepts a mirrored build when the target silhouette is identical", () => {
+    const mirrored = mirroredFigureOneStates();
+
+    expect(hasAnyOverlap(mirrored, piecesById)).toBe(false);
+    expect(isTargetSolved(tPuzzleLevels[0].targets[0], tPuzzleLevels[0].validation, mirrored)).toBe(true);
   });
 
   it("rejects a visually plausible but wrong transform", () => {

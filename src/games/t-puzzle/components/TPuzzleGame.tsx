@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
-import { boardViewBox } from "../config";
+import { boardViewBox, mobileBoardViewBox } from "../config";
 import { hasAnyOverlap, pathFromPoints, transformedVertices } from "../geometry";
 import { tPuzzleLevels } from "../levels";
 import { createInitialPieceStates, piecesById } from "../pieces";
@@ -128,6 +128,9 @@ export function TPuzzleGame() {
   const [startedAt, setStartedAt] = useState(() => Date.now());
   const [completedLevels, setCompletedLevels] = useState<Set<number>>(() => new Set());
   const [completedTargets, setCompletedTargets] = useState<Set<string>>(() => new Set());
+  const [usesMobileBoard, setUsesMobileBoard] = useState(() =>
+    typeof window === "undefined" ? false : window.matchMedia("(max-width: 520px)").matches,
+  );
   const svgRef = useRef<SVGSVGElement | null>(null);
   const advanceTimerRef = useRef<number | null>(null);
   const dragRef = useRef<{
@@ -149,8 +152,18 @@ export function TPuzzleGame() {
     () => [...states].sort((a, b) => a.zIndex - b.zIndex),
     [states],
   );
+  const activeBoardViewBox = usesMobileBoard ? mobileBoardViewBox : boardViewBox;
   const isFinalTarget = targetIndex === level.targets.length - 1;
   const isFinalLevel = levelIndex === tPuzzleLevels.length - 1;
+
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 520px)");
+    const updateBoardMode = () => setUsesMobileBoard(query.matches);
+
+    updateBoardMode();
+    query.addEventListener("change", updateBoardMode);
+    return () => query.removeEventListener("change", updateBoardMode);
+  }, []);
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -448,6 +461,37 @@ export function TPuzzleGame() {
     dragRef.current = null;
   }
 
+  function renderControls(className: string) {
+    return (
+      <div className={`controls ${className}`} aria-label="Sterowanie klockiem">
+        <button type="button" onClick={() => rotateSelected(-45)} title="Obroc o 45 stopni w lewo">
+          <RotateCcw size={20} />
+          <span>45 lewo</span>
+        </button>
+        <button type="button" onClick={() => rotateSelected(45)} title="Obroc o 45 stopni w prawo">
+          <RotateCw size={20} />
+          <span>45 prawo</span>
+        </button>
+        <button type="button" onClick={() => rotateSelected(-90)} title="Obroc o 90 stopni w lewo">
+          <RotateCcw size={20} />
+          <span>90 lewo</span>
+        </button>
+        <button type="button" onClick={() => rotateSelected(90)} title="Obroc o 90 stopni w prawo">
+          <RotateCw size={20} />
+          <span>90 prawo</span>
+        </button>
+        <button type="button" onClick={flipSelected} title="Odbij element">
+          <FlipHorizontal2 size={20} />
+          <span>Odbij</span>
+        </button>
+        <button type="button" onClick={() => resetBoard()} title="Resetuj figure">
+          <RefreshCcw size={20} />
+          <span>Reset</span>
+        </button>
+      </div>
+    );
+  }
+
   return (
     <section className="game-layout">
       <aside className="side-panel">
@@ -547,32 +591,7 @@ export function TPuzzleGame() {
           )}
         </div>
 
-        <div className="panel-section controls">
-          <button type="button" onClick={() => rotateSelected(-45)} title="Obroc o 45 stopni w lewo">
-            <RotateCcw size={20} />
-            <span>45 lewo</span>
-          </button>
-          <button type="button" onClick={() => rotateSelected(45)} title="Obroc o 45 stopni w prawo">
-            <RotateCw size={20} />
-            <span>45 prawo</span>
-          </button>
-          <button type="button" onClick={() => rotateSelected(-90)} title="Obroc o 90 stopni w lewo">
-            <RotateCcw size={20} />
-            <span>90 lewo</span>
-          </button>
-          <button type="button" onClick={() => rotateSelected(90)} title="Obroc o 90 stopni w prawo">
-            <RotateCw size={20} />
-            <span>90 prawo</span>
-          </button>
-          <button type="button" onClick={flipSelected} title="Odbij element">
-            <FlipHorizontal2 size={20} />
-            <span>Odbij</span>
-          </button>
-          <button type="button" onClick={() => resetBoard()} title="Resetuj figure">
-            <RefreshCcw size={20} />
-            <span>Reset</span>
-          </button>
-        </div>
+        {renderControls("panel-section desktop-controls")}
 
         <button
           type="button"
@@ -588,7 +607,7 @@ export function TPuzzleGame() {
       <div className="board-wrap">
         <svg
           ref={svgRef}
-          viewBox={`${boardViewBox.x} ${boardViewBox.y} ${boardViewBox.width} ${boardViewBox.height}`}
+          viewBox={`${activeBoardViewBox.x} ${activeBoardViewBox.y} ${activeBoardViewBox.width} ${activeBoardViewBox.height}`}
           className="puzzle-board"
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
@@ -606,10 +625,10 @@ export function TPuzzleGame() {
             </pattern>
           </defs>
           <rect
-            x={boardViewBox.x}
-            y={boardViewBox.y}
-            width={boardViewBox.width}
-            height={boardViewBox.height}
+            x={activeBoardViewBox.x}
+            y={activeBoardViewBox.y}
+            width={activeBoardViewBox.width}
+            height={activeBoardViewBox.height}
             fill="url(#grid)"
           />
           {sortedStates.map((state) => {
@@ -628,6 +647,7 @@ export function TPuzzleGame() {
             );
           })}
         </svg>
+        {renderControls("mobile-controls")}
       </div>
     </section>
   );

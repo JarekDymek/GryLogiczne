@@ -7,6 +7,10 @@ const SILHOUETTE_PADDING = 3;
 const SILHOUETTE_MATCH_THRESHOLD = 0.72;
 const SILHOUETTE_MISS_LIMIT = 0.32;
 const SILHOUETTE_EXTRA_LIMIT = 0.36;
+const SOLUTION_SILHOUETTE_SIZE = 96;
+const SOLUTION_SILHOUETTE_MATCH_THRESHOLD = 0.9;
+const SOLUTION_SILHOUETTE_MISS_LIMIT = 0.12;
+const SOLUTION_SILHOUETTE_EXTRA_LIMIT = 0.12;
 
 function normalizedTransforms(states: PieceState[]): PieceTransform[] {
   const minX = Math.min(...states.map((state) => state.position.x));
@@ -196,6 +200,79 @@ function matchesTargetSilhouette(figureNumber: number, states: PieceState[]): bo
   );
 }
 
+function statesFromSolution(solution: PieceTransform[]): PieceState[] {
+  return solution.map((transform, index) => ({
+    pieceId: transform.pieceId,
+    position: { x: transform.x, y: transform.y },
+    rotation: transform.rotation,
+    flipped: transform.flipped,
+    zIndex: index + 1,
+    groupId: "solution",
+    lastValidPosition: { x: transform.x, y: transform.y },
+  }));
+}
+
+function compareRasterRows(expectedRows: string[], actualRows: string[]): SilhouetteSimilarity | null {
+  if (expectedRows.length === 0 || expectedRows.length !== actualRows.length) {
+    return null;
+  }
+
+  let intersection = 0;
+  let union = 0;
+  let actualFilled = 0;
+  let expectedFilled = 0;
+
+  for (let y = 0; y < expectedRows.length; y += 1) {
+    for (let x = 0; x < expectedRows[y].length; x += 1) {
+      const actual = actualRows[y][x] === "1";
+      const expected = expectedRows[y][x] === "1";
+
+      if (actual) {
+        actualFilled += 1;
+      }
+      if (expected) {
+        expectedFilled += 1;
+      }
+      if (actual && expected) {
+        intersection += 1;
+      }
+      if (actual || expected) {
+        union += 1;
+      }
+    }
+  }
+
+  if (union === 0 || actualFilled === 0 || expectedFilled === 0) {
+    return null;
+  }
+
+  return {
+    intersectionOverUnion: intersection / union,
+    missRatio: (expectedFilled - intersection) / expectedFilled,
+    extraRatio: (actualFilled - intersection) / actualFilled,
+  };
+}
+
+function matchesSolutionSilhouette(solution: PieceTransform[], states: PieceState[]): boolean {
+  const expectedRows = rasterizeStates(statesFromSolution(solution), SOLUTION_SILHOUETTE_SIZE);
+  const actualRows = rasterizeStates(states, SOLUTION_SILHOUETTE_SIZE);
+
+  if (!expectedRows || !actualRows) {
+    return false;
+  }
+
+  const similarity = compareRasterRows(expectedRows, actualRows);
+  if (!similarity) {
+    return false;
+  }
+
+  return (
+    similarity.intersectionOverUnion >= SOLUTION_SILHOUETTE_MATCH_THRESHOLD &&
+    similarity.missRatio <= SOLUTION_SILHOUETTE_MISS_LIMIT &&
+    similarity.extraRatio <= SOLUTION_SILHOUETTE_EXTRA_LIMIT
+  );
+}
+
 export function isTargetSolved(
   target: TargetDefinition,
   validation: LevelDefinition["validation"],
@@ -215,7 +292,7 @@ export function isTargetSolved(
   );
 
   if (target.solutions.length > 0) {
-    return exactSolution;
+    return exactSolution || target.solutions.some((solution) => matchesSolutionSilhouette(solution, states));
   }
 
   return matchesTargetSilhouette(target.maskFigureNumber ?? target.displayNumber, states);

@@ -228,7 +228,12 @@ button:disabled {
 }
 
 .controls {
+  display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.mobile-controls {
+  display: none;
 }
 
 .controls button,
@@ -255,6 +260,7 @@ button:disabled {
 .board-wrap {
   min-height: 650px;
   overflow: hidden;
+  position: relative;
 }
 
 .puzzle-board {
@@ -307,46 +313,72 @@ button:disabled {
     padding: 12px;
   }
 
+  .desktop-controls {
+    display: none;
+  }
+
   .board-wrap {
     order: 1;
-    min-height: clamp(520px, 68dvh, 720px);
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    height: calc(100dvh - 76px);
+    min-height: 560px;
+    max-height: 820px;
+    position: sticky;
+    top: max(8px, env(safe-area-inset-top));
+    z-index: 2;
   }
 
   .puzzle-board {
-    min-height: clamp(520px, 68dvh, 720px);
+    height: 100%;
+    min-height: 0;
   }
 
-  .controls {
+  .mobile-controls {
+    display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    padding: 8px;
+    border-top: 1px solid #d8e0eb;
+    background: #ffffff;
   }
 }
 
 @media (max-width: 520px) {
+  .app-shell {
+    padding: max(6px, env(safe-area-inset-top)) max(6px, env(safe-area-inset-right))
+      max(6px, env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left));
+  }
+
   .topbar {
-    gap: 10px;
+    display: none;
   }
 
-  .topbar h1 {
-    font-size: 1.35rem;
+  .game-layout {
+    gap: 8px;
   }
 
-  .game-pill {
-    padding: 6px 8px;
-    font-size: 0.82rem;
+  .board-wrap {
+    height: calc(100dvh - 12px);
+    min-height: 0;
   }
 
-  .board-wrap,
-  .puzzle-board {
-    min-height: clamp(500px, 64dvh, 630px);
-  }
-
-  .controls {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .controls button {
-    min-height: 48px;
+  .mobile-controls {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 6px;
+    padding: 6px;
+  }
+
+  .mobile-controls button {
+    min-height: 46px;
+    gap: 4px;
+    padding: 0 4px;
+    font-size: 0.78rem;
+  }
+
+  .mobile-controls svg {
+    width: 17px;
+    height: 17px;
   }
 
   .level-tabs {
