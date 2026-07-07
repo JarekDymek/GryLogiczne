@@ -73,6 +73,59 @@ function targetKey(levelId: string, targetId: string): string {
   return `${levelId}:${targetId}`;
 }
 
+const INITIAL_UNLOCKED_LEVELS = 3;
+const PROGRESS_STORAGE_KEY = "gry-logiczne:t-puzzle-progress:v2";
+
+interface StoredProgress {
+  levelIndex: number;
+  targetIndex: number;
+  completedLevels: number[];
+  completedTargets: string[];
+}
+
+function defaultProgress(): StoredProgress {
+  return {
+    levelIndex: 0,
+    targetIndex: 0,
+    completedLevels: [],
+    completedTargets: [],
+  };
+}
+
+function loadStoredProgress(): StoredProgress {
+  if (typeof window === "undefined") {
+    return defaultProgress();
+  }
+
+  try {
+    const rawValue = window.localStorage.getItem(PROGRESS_STORAGE_KEY);
+    if (!rawValue) {
+      return defaultProgress();
+    }
+
+    const parsed = JSON.parse(rawValue) as Partial<StoredProgress>;
+    const levelIndex = Math.min(Math.max(parsed.levelIndex ?? 0, 0), tPuzzleLevels.length - 1);
+    const maxTargetIndex = tPuzzleLevels[levelIndex].targets.length - 1;
+
+    return {
+      levelIndex,
+      targetIndex: Math.min(Math.max(parsed.targetIndex ?? 0, 0), maxTargetIndex),
+      completedLevels: Array.isArray(parsed.completedLevels) ? parsed.completedLevels : [],
+      completedTargets: Array.isArray(parsed.completedTargets) ? parsed.completedTargets : [],
+    };
+  } catch {
+    return defaultProgress();
+  }
+}
+
+function saveStoredProgress(progress: StoredProgress) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(progress));
+}
+
 function targetImageUrl(figureNumber: number): string {
   return `${import.meta.env.BASE_URL}t-puzzle/targets/figure-${String(figureNumber).padStart(3, "0")}.png`;
 }
@@ -117,8 +170,9 @@ function boundsForPolygons(polygons: Point[][]) {
 }
 
 export function TPuzzleGame() {
-  const [levelIndex, setLevelIndex] = useState(0);
-  const [targetIndex, setTargetIndex] = useState(0);
+  const storedProgress = useMemo(() => loadStoredProgress(), []);
+  const [levelIndex, setLevelIndex] = useState(storedProgress.levelIndex);
+  const [targetIndex, setTargetIndex] = useState(storedProgress.targetIndex);
   const [states, setStates] = useState<PieceState[]>(() => createInitialPieceStates());
   const [selectedPieceId, setSelectedPieceId] = useState<string>("blue-bar");
   const [message, setMessage] = useState("Uloz cztery elementy w sylwetke celu.");
@@ -126,8 +180,12 @@ export function TPuzzleGame() {
   const [moves, setMoves] = useState(0);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [startedAt, setStartedAt] = useState(() => Date.now());
-  const [completedLevels, setCompletedLevels] = useState<Set<number>>(() => new Set());
-  const [completedTargets, setCompletedTargets] = useState<Set<string>>(() => new Set());
+  const [completedLevels, setCompletedLevels] = useState<Set<number>>(
+    () => new Set(storedProgress.completedLevels),
+  );
+  const [completedTargets, setCompletedTargets] = useState<Set<string>>(
+    () => new Set(storedProgress.completedTargets),
+  );
   const [usesMobileBoard, setUsesMobileBoard] = useState(() =>
     typeof window === "undefined" ? false : window.matchMedia("(max-width: 520px)").matches,
   );
@@ -138,6 +196,7 @@ export function TPuzzleGame() {
     startPoint: Point;
     startStates: PieceState[];
     activeIds: Set<string>;
+    dragOffset: Point;
   } | null>(null);
 
   const level = tPuzzleLevels[levelIndex];
@@ -174,6 +233,15 @@ export function TPuzzleGame() {
 
     return () => window.clearInterval(interval);
   }, [isSolved, startedAt]);
+
+  useEffect(() => {
+    saveStoredProgress({
+      levelIndex,
+      targetIndex,
+      completedLevels: Array.from(completedLevels),
+      completedTargets: Array.from(completedTargets),
+    });
+  }, [completedLevels, completedTargets, levelIndex, targetIndex]);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -217,15 +285,11 @@ export function TPuzzleGame() {
   }
 
   function isLevelUnlocked(index: number): boolean {
-    return index === 0 || completedLevels.has(index - 1);
+    return index < INITIAL_UNLOCKED_LEVELS || completedLevels.has(index - 1);
   }
 
   function isTargetUnlocked(index: number): boolean {
-    if (index === 0) {
-      return true;
-    }
-
-    return completedTargets.has(targetKey(level.id, level.targets[index - 1].id));
+    return index >= 0 && index < level.targets.length;
   }
 
   function selectLevel(index: number) {
@@ -403,11 +467,13 @@ export function TPuzzleGame() {
     selectAndLift(pieceId);
     const startPoint = svgPoint(svgRef.current, event);
     const activeIds = groupIdsFor(states, pieceId);
+    const dragOffset = event.pointerType === "touch" ? { x: 0, y: -1.15 } : { x: 0, y: 0 };
     dragRef.current = {
       pointerId: event.pointerId,
       startPoint,
       startStates: states,
       activeIds,
+      dragOffset,
     };
   }
 
@@ -419,8 +485,8 @@ export function TPuzzleGame() {
     event.preventDefault();
     const currentPoint = svgPoint(svgRef.current, event);
     const delta = {
-      x: currentPoint.x - dragRef.current.startPoint.x,
-      y: currentPoint.y - dragRef.current.startPoint.y,
+      x: currentPoint.x - dragRef.current.startPoint.x + dragRef.current.dragOffset.x,
+      y: currentPoint.y - dragRef.current.startPoint.y + dragRef.current.dragOffset.y,
     };
     setStates(applyDeltaToStates(dragRef.current.startStates, dragRef.current.activeIds, delta));
   }
@@ -492,6 +558,88 @@ export function TPuzzleGame() {
     );
   }
 
+  function renderLevelTabs(className: string) {
+    return (
+      <div className={`level-tabs ${className}`} aria-label="Lista poziomow">
+        {tPuzzleLevels.map((entry, index) => {
+          const unlocked = isLevelUnlocked(index);
+          return (
+            <button
+              key={entry.id}
+              type="button"
+              className={index === levelIndex ? "level-tab active" : "level-tab"}
+              disabled={!unlocked}
+              onClick={() => selectLevel(index)}
+            >
+              <span>{entry.displayNumber}</span>
+              <small>{entry.difficulty}</small>
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+
+  function renderTargetTabs(className: string) {
+    return (
+      <div className={`target-tabs ${className}`} aria-label="Warianty figury">
+        {level.targets.map((entry, index) => {
+          const unlocked = isTargetUnlocked(index);
+          const completed = completedTargets.has(targetKey(level.id, entry.id));
+          return (
+            <button
+              key={entry.id}
+              type="button"
+              className={index === targetIndex ? "target-tab active" : "target-tab"}
+              disabled={!unlocked}
+              onClick={() => selectTarget(index)}
+              title={entry.name}
+            >
+              <span>{index + 1}</span>
+              {completed ? <Check size={14} /> : null}
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+
+  function renderTargetPreview() {
+    if (target.maskFigureNumber) {
+      return (
+        <img
+          src={targetImageUrl(target.maskFigureNumber)}
+          className="preview-image"
+          alt={`Jednolity podglad figury ${target.displayNumber}`}
+          draggable={false}
+        />
+      );
+    }
+
+    return (
+      <svg
+        viewBox={`${previewBounds.x} ${previewBounds.y} ${previewBounds.width} ${previewBounds.height}`}
+        className="preview-svg"
+        aria-label="Jednolity podglad figury docelowej"
+      >
+        {target.outline ? (
+          <polygon
+            points={pathFromPoints(target.outline)}
+            className="target-silhouette"
+          />
+        ) : (
+          targetPolygons.map((points, index) => (
+            <polygon
+              key={`${target.id}-${index}`}
+              points={pathFromPoints(points)}
+              className="target-silhouette"
+            />
+          ))
+        )}
+      </svg>
+    );
+  }
+
   return (
     <section className="game-layout">
       <aside className="side-panel">
@@ -520,75 +668,13 @@ export function TPuzzleGame() {
           </div>
         </div>
 
-        <div className="panel-section level-tabs" aria-label="Lista poziomow">
-          {tPuzzleLevels.map((entry, index) => {
-            const unlocked = isLevelUnlocked(index);
-            return (
-              <button
-                key={entry.id}
-                type="button"
-                className={index === levelIndex ? "level-tab active" : "level-tab"}
-                disabled={!unlocked}
-                onClick={() => selectLevel(index)}
-              >
-                <span>{entry.displayNumber}</span>
-                <small>{entry.difficulty}</small>
-              </button>
-            );
-          })}
-        </div>
+        {renderLevelTabs("panel-section")}
 
-        <div className="panel-section target-tabs" aria-label="Figury w poziomie">
-          {level.targets.map((entry, index) => {
-            const unlocked = isTargetUnlocked(index);
-            const completed = completedTargets.has(targetKey(level.id, entry.id));
-            return (
-              <button
-                key={entry.id}
-                type="button"
-                className={index === targetIndex ? "target-tab active" : "target-tab"}
-                disabled={!unlocked}
-                onClick={() => selectTarget(index)}
-                title={entry.name}
-              >
-                <span>{index + 1}</span>
-                {completed ? <Check size={14} /> : null}
-              </button>
-            );
-          })}
-        </div>
+        {renderTargetTabs("panel-section")}
 
         <div className="panel-section preview-section">
           <p className="section-label">Cel {targetIndex + 1}/{level.targets.length}</p>
-          {target.maskFigureNumber ? (
-            <img
-              src={targetImageUrl(target.maskFigureNumber)}
-              className="preview-image"
-              alt={`Jednolity podglad figury ${target.displayNumber}`}
-              draggable={false}
-            />
-          ) : (
-            <svg
-              viewBox={`${previewBounds.x} ${previewBounds.y} ${previewBounds.width} ${previewBounds.height}`}
-              className="preview-svg"
-              aria-label="Jednolity podglad figury docelowej"
-            >
-              {target.outline ? (
-                <polygon
-                  points={pathFromPoints(target.outline)}
-                  className="target-silhouette"
-                />
-              ) : (
-                targetPolygons.map((points, index) => (
-                  <polygon
-                    key={`${target.id}-${index}`}
-                    points={pathFromPoints(points)}
-                    className="target-silhouette"
-                  />
-                ))
-              )}
-            </svg>
-          )}
+          {renderTargetPreview()}
         </div>
 
         {renderControls("panel-section desktop-controls")}
@@ -605,6 +691,20 @@ export function TPuzzleGame() {
       </aside>
 
       <div className="board-wrap">
+        <div className="mobile-objective">
+          <div className="mobile-objective-copy">
+            <p className="eyebrow">Poziom {level.displayNumber}</p>
+            <strong>{level.name}</strong>
+            <span>Wariant {targetIndex + 1}/{level.targets.length}</span>
+          </div>
+          <div className="mobile-objective-preview">
+            {renderTargetPreview()}
+          </div>
+          <div className="mobile-pickers">
+            {renderLevelTabs("mobile-tabs")}
+            {renderTargetTabs("mobile-tabs")}
+          </div>
+        </div>
         <svg
           ref={svgRef}
           viewBox={`${activeBoardViewBox.x} ${activeBoardViewBox.y} ${activeBoardViewBox.width} ${activeBoardViewBox.height}`}

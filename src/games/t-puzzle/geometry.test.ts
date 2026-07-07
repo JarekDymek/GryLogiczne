@@ -221,7 +221,7 @@ describe("T-Puzzle geometry", () => {
     expect(Math.max(...ys)).toBeCloseTo(T_PUZZLE_HEIGHT, 8);
   });
 
-  it("puts three figures in every level", () => {
+  it("puts three selectable variants in every figure level", () => {
     for (const level of tPuzzleLevels) {
       expect(level.targets).toHaveLength(3);
     }
@@ -229,7 +229,11 @@ describe("T-Puzzle geometry", () => {
 
   it("builds the verified MOW progression", () => {
     expect(tPuzzleLevels).toHaveLength(3);
-    expect(tPuzzleLevels[1].name).toBe("Obroty skosne");
+    expect(tPuzzleLevels.map((level) => level.name)).toEqual([
+      "Litera T",
+      "Dluga belka",
+      "Waska kolumna",
+    ]);
   });
 
   it("ships only targets with verified exact solutions", () => {
@@ -239,7 +243,7 @@ describe("T-Puzzle geometry", () => {
 
     expect(allTargets).toHaveLength(9);
     expect(allTargets[3].target.displayNumber).toBe(4);
-    expect(allTargets[3].target.name).toContain("45");
+    expect(allTargets[3].target.name).toBe("Belka pozioma");
 
     for (const { level, target } of allTargets) {
       expect(target.maskFigureNumber).toBeUndefined();

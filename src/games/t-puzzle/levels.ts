@@ -48,6 +48,33 @@ function tSolution(rotation: PieceRotation): PieceTransform[] {
   });
 }
 
+function addRotation(rotation: PieceRotation, delta: PieceRotation): PieceRotation {
+  return ((rotation + delta) % 360) as PieceRotation;
+}
+
+function rotateSolution(solution: PieceTransform[], rotation: PieceRotation): PieceTransform[] {
+  return solution.map((transform) => {
+    const piece = pieceDefinitions.find((entry) => entry.id === transform.pieceId);
+
+    if (!piece) {
+      return transform;
+    }
+
+    const rotatedCentroid = rotatePoint(
+      piece.centroid.x + transform.x,
+      piece.centroid.y + transform.y,
+      rotation,
+    );
+
+    return {
+      ...transform,
+      x: rotatedCentroid.x - piece.centroid.x,
+      y: rotatedCentroid.y - piece.centroid.y,
+      rotation: addRotation(transform.rotation, rotation),
+    };
+  });
+}
+
 function exactTarget(
   displayNumber: number,
   name: string,
@@ -118,20 +145,27 @@ const horizontalBeamSolution: PieceTransform[] = [
   { pieceId: "yellow-cap", x: -1.8374642768363678, y: 0.15349857107345533, rotation: 180, flipped: false },
 ];
 
+const narrowColumnSolution: PieceTransform[] = [
+  { pieceId: "blue-bar", x: -0.4142135623730949, y: 0.8284271247461902, rotation: 0, flipped: false },
+  { pieceId: "green-wing", x: -0.17232357269609366, y: 0.6648543227202665, rotation: 225, flipped: false },
+  { pieceId: "pink-keystone", x: 0.9191197709602386, y: 3.6666666666666665, rotation: 180, flipped: false },
+  { pieceId: "yellow-cap", x: -1.8374642768363678, y: 4.153498571073454, rotation: 180, flipped: false },
+];
+
 export const tPuzzleLevels: LevelDefinition[] = [
-  defineLevel(1, "Start: litera T", "easy", [
+  defineLevel(1, "Litera T", "easy", [
     exactTarget(1, "Klasyczna litera T", 0),
     exactTarget(2, "T obrocone w prawo", 90),
-    exactTarget(3, "T obrocone w lewo", 270),
+    exactTarget(3, "T odwrocone", 180),
   ]),
-  defineLevel(2, "Obroty skosne", "easy", [
-    exactTarget(4, "T pod katem 45 stopni", 45),
-    exactTarget(5, "T pod katem 135 stopni", 135),
-    exactTarget(6, "T pod katem 225 stopni", 225),
+  defineLevel(2, "Dluga belka", "easy", [
+    verifiedTarget(4, "Belka pozioma", horizontalBeamSolution),
+    verifiedTarget(5, "Belka pionowa", rotateSolution(horizontalBeamSolution, 90)),
+    verifiedTarget(6, "Belka skosna", rotateSolution(horizontalBeamSolution, 45)),
   ]),
-  defineLevel(3, "Sprawdzone uklady", "medium", [
-    exactTarget(7, "T odwrocone", 180),
-    exactTarget(8, "T pod katem 315 stopni", 315),
-    verifiedTarget(9, "Dluga belka", horizontalBeamSolution),
+  defineLevel(3, "Waska kolumna", "medium", [
+    verifiedTarget(7, "Kolumna pionowa", narrowColumnSolution),
+    verifiedTarget(8, "Kolumna pozioma", rotateSolution(narrowColumnSolution, 90)),
+    verifiedTarget(9, "Kolumna skosna", rotateSolution(narrowColumnSolution, 45)),
   ]),
 ];

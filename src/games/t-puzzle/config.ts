@@ -12,12 +12,12 @@ export const boardViewBox = {
   x: -4.2,
   y: -2.2,
   width: 10,
-  height: 7.6,
+  height: 8.4,
 };
 
 export const mobileBoardViewBox = {
-  x: -3.6,
-  y: -2.5,
-  width: 7.2,
-  height: 11.6,
+  x: -3.25,
+  y: -0.7,
+  width: 6.5,
+  height: 9.6,
 };
